@@ -13,7 +13,7 @@ router.get("/:id", (req,res) => {
     if(todo){
         res.status(200).json(todo);
     } else {
-        res.status(404).json({"message" : "TODO is not found!"});
+        throw new Error("Todo not found");
     }
 })
 
@@ -29,6 +29,7 @@ router.put("/:id",(req,res) => {
         res.status(200).json(todo);
     } else {
         res.status(404).json({"message": "TODO does not exist!"});
+        
     }
 })
 
