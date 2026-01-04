@@ -12,6 +12,11 @@ Complete CRUD API with validation, proper HTTP status codes, and organized code 
 - ✅ Code organization (routes, data, validators in separate files)
 - ✅ Express Router
 - ✅ Module exports/imports
+- ✅ Logger middleware (logs all requests)
+- ✅ Request timer (measures response time)
+- ✅ Error handler (centralized error handling)
+- ✅ Understanding of middleware chain
+- ✅ Event system (res.on)
 
 ## Project Structure:
 ```
@@ -21,6 +26,10 @@ day-02-todo-api/
 │   └── todos.js        # All todo routes
 ├── data/
 │   └── todos.js        # Todo data
+├── middleware/           ← NEW
+│   ├── logger.js
+│   ├── timer.js
+│   └── errorHandler.js
 ├── validators.js       # Validation functions
 └── package.json
 ```
