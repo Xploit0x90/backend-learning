@@ -1,53 +1,90 @@
-# Day 2: TODO API with Clean Architecture
+# Todo REST API
 
-Complete CRUD API with validation, proper HTTP status codes, and organized code structure.
+A production-ready RESTful API built with Node.js and Express, featuring clean architecture, comprehensive middleware, and proper error handling.
 
-## What I Learned:
-- ✅ CRUD operations (Create, Read, Update, Delete)
-- ✅ PUT requests (partial updates)
-- ✅ DELETE requests
-- ✅ Input validation with separate validator functions
-- ✅ HTTP status codes (200, 201, 400, 404)
-- ✅ Data sanitization (trim)
-- ✅ Code organization (routes, data, validators in separate files)
-- ✅ Express Router
-- ✅ Module exports/imports
-- ✅ Logger middleware (logs all requests)
-- ✅ Request timer (measures response time)
-- ✅ Error handler (centralized error handling)
-- ✅ Understanding of middleware chain
-- ✅ Event system (res.on)
+## Features
 
-## Project Structure:
-```
-day-02-todo-api/
-├── app.js              # Server setup
-├── routes/
-│   └── todos.js        # All todo routes
-├── data/
-│   └── todos.js        # Todo data
-├── middleware/           ← NEW
-│   ├── logger.js
-│   ├── timer.js
-│   └── errorHandler.js
-├── validators.js       # Validation functions
-└── package.json
-```
+- ✅ Full CRUD operations
+- ✅ Input validation & sanitization
+- ✅ Centralized error handling
+- ✅ Request logging & performance monitoring
+- ✅ Environment-based configuration
+- ✅ Modular code structure
 
-## Routes:
-- `GET /todos` - Get all todos (200)
-- `GET /todos/:id` - Get one todo (200/404)
-- `POST /todos` - Create todo (201/400)
-- `PUT /todos/:id` - Update todo (200/404)
-- `DELETE /todos/:id` - Delete todo (200/404)
+## Tech Stack
 
-## Tech Stack:
-Node.js, Express
+- Node.js
+- Express.js
+- dotenv
 
-## Run:
+## Quick Start
 ```bash
+# Install dependencies
 npm install
-node app.js
-# or
-npx nodemon app.js
+
+# Configure environment
+cp .env.example .env
+
+# Start server
+npm start
 ```
+
+## API Endpoints
+
+| Method | Endpoint | Description | Status Codes |
+|--------|----------|-------------|--------------|
+| GET | `/todos` | Get all todos | 200 |
+| GET | `/todos/:id` | Get todo by ID | 200, 404 |
+| POST | `/todos` | Create new todo | 201, 400 |
+| PUT | `/todos/:id` | Update todo | 200, 404, 400 |
+| DELETE | `/todos/:id` | Delete todo | 200, 404 |
+
+## Request Examples
+
+**Create Todo**
+```bash
+POST /todos
+Content-Type: application/json
+
+{
+  "title": "Learn Node.js"
+}
+```
+
+**Update Todo**
+```bash
+PUT /todos/1
+Content-Type: application/json
+
+{
+  "title": "Master Node.js",
+  "completed": true
+}
+```
+
+## Project Structure
+```
+├── app.js                 # Application entry point
+├── routes/
+│   └── todos.js          # Todo routes
+├── middleware/
+│   ├── logger.js         # Request logging
+│   ├── timer.js          # Performance monitoring
+│   └── errorHandler.js   # Error handling
+├── data/
+│   └── todos.js          # Data layer
+└── validators.js         # Input validation
+```
+
+## Key Learnings
+
+- RESTful API design principles
+- Express middleware architecture
+- Modular code organization
+- Environment configuration
+- Error handling strategies
+- HTTP status code best practices
+
+---
+
+**Part of my backend development learning journey** • [View other projects](https://github.com/Xploit0x90)
