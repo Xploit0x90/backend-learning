@@ -85,6 +85,3 @@ Content-Type: application/json
 - Environment-based configuration
 
 ---
-
-**Part of my backend development journey** • Day 4
-```
