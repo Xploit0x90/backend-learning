@@ -2,9 +2,12 @@ const express = require("express");
 const router = express.Router();
 const {validateTitle, validateContent} = require("../validators.js");
 const notes = require("../data/notes.js")
+const mongoose = require("mongoose");
+const NoteModel = require("../models/note.js");
 
-router.get("/",(req,res)=>{
-    res.json(notes);
+router.get("/",async(req,res)=>{
+    const notes = await NoteModel.find();
+    res.status(200).json(notes);
 })
 
 router.get("/:id",(req,res)=>{
@@ -17,7 +20,8 @@ router.get("/:id",(req,res)=>{
     res.status(404).json({ message: "Note not found" });
 })
 
-router.post("/", (req, res) => {
+
+router.post("/create/", async(req,res) => {
     if (!validateTitle(req.body.title)) {
         return res.status(400).json({ message: "Title is required" });
     }
@@ -27,18 +31,19 @@ router.post("/", (req, res) => {
     }
     
     const timestamp = new Date().toISOString();
-    const note = {
-        id: notes.length + 1,
+    const newNote = new NoteModel( {
+        id: Number(req.params.id),
         title: req.body.title.trim(),     
         content: req.body.content.trim(),  
         category: req.body.category,
         createdAt: timestamp,
         updatedAt: timestamp,
-    };
+    });
     
-    notes.push(note);
+    await newNote.save();
     res.status(201).json({ message: "Note added successfully" });
-});
+
+})
 
 router.put("/:id", (req,res) => {
     const id = Number(req.params.id);
