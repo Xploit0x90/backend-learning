@@ -12,21 +12,25 @@ const BadRequest = {message: "Bad Request 400!"}
 const ServerError = {message: "Something went wrong..."}
 
 
-router.get("/users",(req:Request<{},User[],RequestBody>, res:Response<User[] | ErrorResponse>)=>{ 
-        userController.getAll(req,res)
+router.get("/", (req: Request<{}, User[], RequestBody, UserQuery>, res: Response<User[] | ErrorResponse>) => {
+    if (req.query.name != null && req.query.name !== "") {
+        userController.getUserByName(req, res)
+    } else {
+        userController.getAllUsers(req, res)
+    }
 })
 
-router.get("/user", (req: Request<{}, {}, {}, UserQuery>, res: Response<User| ErrorResponse>)=> {
-    userController.getByName(req, res);
-})
-
-router.get("/user/:id", (req:Request<{id: string} >, res:Response<ErrorResponse|ResponseBody>) => {
-    userController.getById(req, res);
+router.get("/:id", (req:Request<{id: string} >, res:Response<ErrorResponse|ResponseBody>) => {
+    userController.getUserById(req, res);
 })
 
 
-router.post("/users", (req: Request<{},ResponseBody,RequestBody>, res:Response<ResponseBody>)=> {
-    userController.create(req,res);
+router.post("/", (req: Request<{},ResponseBody,RequestBody>, res:Response<ResponseBody>)=> {
+    userController.createUser(req,res);
+})
+
+router.delete("/:id", (req: Request, res:Response<ResponseBody>)=> {
+    userController.deleteUser(req,res);
 })
 
 export default router
