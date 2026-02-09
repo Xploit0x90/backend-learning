@@ -96,11 +96,13 @@ describe('ParticipantsPage', () => {
       expect(screen.getByText('John Doe')).toBeInTheDocument();
     });
 
-    const createButton = screen.getByText(/neuer teilnehmer/i);
+    // Button text is i18n: "New participant" (en) or "Neuer Teilnehmer" (de)
+    const createButton = screen.getByRole('button', { name: /new participant|neuer teilnehmer/i });
     fireEvent.click(createButton);
 
     await waitFor(() => {
-      expect(screen.getByText(/neuen teilnehmer hinzufügen/i)).toBeInTheDocument();
+      // Modal title is i18n: "Add new participant" (en) or "Neuen Teilnehmer hinzufügen" (de)
+      expect(screen.getByText(/add new participant|neuen teilnehmer hinzufügen/i)).toBeInTheDocument();
     });
   });
 
