@@ -123,6 +123,11 @@ Postman collection: `backend/docs/Event-Management-API.postman_collection.json`
 
 **Note:** Vercel hosts the React app only. It does not run the Express backend; that must be deployed on a Node-friendly platform.
 
+**If you see a Vercel error (e.g. a code like `fra1::xwl2v-...`):** That’s a deployment ID, not the real error.
+- In the Vercel dashboard open the failed **Deployment** → **Building** tab and check the **build logs** for the actual message (e.g. “No such file or directory”, “npm run build exited with 1”).
+- **Repo is `backend-learning`?** In the project **Settings → General** set **Root Directory** to `event-management-app` so the build can find the `frontend` folder. Leave “Include source files outside of the Root Directory” unchecked.
+- If the build fails on `tsc` or `vite build`, fix the reported TypeScript or build error locally with `cd frontend && npm run build`.
+
 ---
 
 ## Scripts
