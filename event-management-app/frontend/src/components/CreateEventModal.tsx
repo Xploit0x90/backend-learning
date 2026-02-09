@@ -161,14 +161,15 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onClose, on
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="xl" isCentered scrollBehavior="inside">
+    <Modal isOpen={isOpen} onClose={onClose} size={{ base: 'full', md: 'xl' }} isCentered scrollBehavior="inside">
       <ModalOverlay bg="blackAlpha.600" backdropFilter="blur(10px)" />
       <ModalContent
         bg={cardBg}
         border={`1px solid ${cardBorder}`}
         backdropFilter="blur(20px)"
-        borderRadius="20px"
-        maxH="90vh"
+        borderRadius={{ base: '0', md: '20px' }}
+        maxH={{ base: '100vh', md: '90vh' }}
+        margin={0}
       >
         <ModalHeader fontSize="24px" fontWeight={700}>
           {t('createEvent.title')}

@@ -349,6 +349,8 @@ const TagsPage: React.FC = () => {
               padding={{ base: '16px', md: '20px', lg: '24px' }}
               cursor="pointer"
               transition="all 0.3s ease"
+              overflow="hidden"
+              minWidth="0"
               _hover={{
                 transform: 'translateY(-4px)',
                 boxShadow: '0 12px 40px rgba(0, 0, 0, 0.12)',
@@ -356,8 +358,8 @@ const TagsPage: React.FC = () => {
               }}
               onClick={() => navigate(`/tags/${tag.id}`)}
             >
-              <VStack align="stretch" spacing={{ base: '12px', md: '16px' }}>
-                <Flex alignItems="center" gap={{ base: '12px', md: '16px' }} flexWrap="wrap">
+              <VStack align="stretch" spacing={{ base: '12px', md: '16px' }} minWidth="0">
+                <Flex alignItems="center" gap={{ base: '12px', md: '16px' }} flexWrap="wrap" minWidth="0">
                   <Box
                     width={{ base: '40px', md: '48px' }}
                     height={{ base: '40px', md: '48px' }}
@@ -372,10 +374,12 @@ const TagsPage: React.FC = () => {
                       color={titleColor} 
                       noOfLines={1}
                       wordBreak="break-word"
+                      overflow="hidden"
+                      textOverflow="ellipsis"
                     >
                       {tag.name}
                     </Heading>
-                    <HStack spacing="8px" fontSize={{ base: '12px', md: '13px' }} color={textColor} flexWrap="wrap">
+                    <HStack spacing="8px" fontSize={{ base: '12px', md: '13px' }} color={textColor} flexWrap="wrap" minWidth="0">
                       <Icon as={Calendar} boxSize="16px" flexShrink={0} />
                       <Text>
                         {t('participants.eventCount', { count: tag.event_count || 0 })}
@@ -392,6 +396,9 @@ const TagsPage: React.FC = () => {
                   fontSize="12px"
                   fontWeight={600}
                   width="fit-content"
+                  maxWidth="100%"
+                  overflow="hidden"
+                  textOverflow="ellipsis"
                 >
                   {tag.name}
                 </Badge>
@@ -409,6 +416,8 @@ const TagsPage: React.FC = () => {
                     color="#EB5E28"
                     _hover={{ bg: 'rgba(235, 94, 40, 0.2)' }}
                     borderRadius="8px"
+                    minHeight="44px"
+                    padding="10px 16px"
                     onClick={() => navigate(`/tags/${tag.id}`)}
                     flex={{ base: '1', sm: '0 1 auto' }}
                     width={{ base: '100%', sm: 'auto' }}
@@ -422,6 +431,8 @@ const TagsPage: React.FC = () => {
                     color="#3B82F6"
                     _hover={{ bg: 'rgba(59, 130, 246, 0.2)' }}
                     borderRadius="8px"
+                    minHeight="44px"
+                    padding="10px 16px"
                     onClick={() => setEditingTag(tag)}
                     flex={{ base: '1', sm: '0 1 auto' }}
                     width={{ base: '100%', sm: 'auto' }}
@@ -435,6 +446,8 @@ const TagsPage: React.FC = () => {
                     color="#ef4444"
                     _hover={{ bg: 'rgba(239, 68, 68, 0.2)' }}
                     borderRadius="8px"
+                    minHeight="44px"
+                    padding="10px 16px"
                     onClick={() => handleDeleteTag(tag.id, tag.name)}
                     flex={{ base: '1', sm: '0 1 auto' }}
                     width={{ base: '100%', sm: 'auto' }}

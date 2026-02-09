@@ -460,6 +460,8 @@ const EventsPage: React.FC = () => {
               padding={{ base: '16px', md: '20px', lg: '24px' }}
               cursor="pointer"
               transition="all 0.3s ease"
+              overflow="hidden"
+              minWidth="0"
               _hover={{
                 transform: 'translateY(-4px)',
                 boxShadow: '0 12px 40px rgba(0, 0, 0, 0.12)',
@@ -502,38 +504,41 @@ const EventsPage: React.FC = () => {
                   />
                 </Box>
               )}
-              <VStack align="stretch" spacing={{ base: '10px', md: '12px' }}>
+              <VStack align="stretch" spacing={{ base: '10px', md: '12px' }} minWidth="0">
                 <Heading 
                   fontSize={{ base: '18px', md: '20px' }} 
                   fontWeight={700} 
                   color={titleColor} 
                   noOfLines={2}
                   wordBreak="break-word"
+                  overflow="hidden"
+                  textOverflow="ellipsis"
+                  minWidth="0"
                 >
                   {event.title}
                 </Heading>
-                <VStack align="stretch" spacing="6px" fontSize={{ base: '13px', md: '14px' }} color={textColor}>
-                  <HStack flexWrap="wrap">
-                    <Text as="strong" whiteSpace="nowrap">{t('events.locationLabel')}</Text>
-                    <Text>{event.location}</Text>
+                <VStack align="stretch" spacing="6px" fontSize={{ base: '13px', md: '14px' }} color={textColor} minWidth="0">
+                  <HStack flexWrap="wrap" gap="4px" minWidth="0">
+                    <Text as="strong" flexShrink={0}>{t('events.locationLabel')}</Text>
+                    <Text noOfLines={1} minWidth="0" wordBreak="break-word">{event.location}</Text>
                   </HStack>
-                  <HStack flexWrap="wrap">
-                    <Text as="strong" whiteSpace="nowrap">{t('events.dateLabel')}</Text>
-                    <Text>{new Date(event.date).toLocaleString(i18n.language === 'de' ? 'de-DE' : 'en-US')}</Text>
+                  <HStack flexWrap="wrap" gap="4px" minWidth="0">
+                    <Text as="strong" flexShrink={0}>{t('events.dateLabel')}</Text>
+                    <Text noOfLines={1} minWidth="0">{new Date(event.date).toLocaleString(i18n.language === 'de' ? 'de-DE' : 'en-US')}</Text>
                   </HStack>
-                  <HStack flexWrap="wrap">
-                    <Text as="strong" whiteSpace="nowrap">{t('events.participantsLabel')}</Text>
+                  <HStack flexWrap="wrap" gap="4px" minWidth="0">
+                    <Text as="strong" flexShrink={0}>{t('events.participantsLabel')}</Text>
                     <Text>{event.participant_count || 0} / {event.max_participants}</Text>
                   </HStack>
                   {event.description && (
-                    <Text noOfLines={2} fontSize={{ base: '12px', md: '13px' }} opacity={0.8}>
+                    <Text noOfLines={2} fontSize={{ base: '12px', md: '13px' }} opacity={0.8} minWidth="0" wordBreak="break-word">
                       {event.description}
                     </Text>
                   )}
                 </VStack>
                 
                 {event.tags && event.tags.length > 0 && (
-                  <HStack spacing="8px" flexWrap="wrap">
+                  <HStack spacing="8px" flexWrap="wrap" minWidth="0">
                     {event.tags.map((tag) => (
                       <Badge
                         key={tag.id}
@@ -543,6 +548,9 @@ const EventsPage: React.FC = () => {
                         borderRadius="6px"
                         fontSize="11px"
                         fontWeight={600}
+                        maxWidth="100%"
+                        overflow="hidden"
+                        textOverflow="ellipsis"
                       >
                         {tag.name}
                       </Badge>
@@ -550,7 +558,7 @@ const EventsPage: React.FC = () => {
                   </HStack>
                 )}
                 
-                {/* Action Buttons */}
+                {/* Action Buttons - taller for easier tap */}
                 <Flex 
                   gap="8px" 
                   flexWrap="wrap" 
@@ -564,6 +572,8 @@ const EventsPage: React.FC = () => {
                     color="#EB5E28"
                     _hover={{ bg: 'rgba(235, 94, 40, 0.2)' }}
                     borderRadius="8px"
+                    minHeight="44px"
+                    padding="10px 16px"
                     onClick={() => navigate(`/events/${event.id}`)}
                     flex={{ base: '1', sm: '0 1 auto' }}
                     width={{ base: '100%', sm: 'auto' }}
@@ -577,6 +587,8 @@ const EventsPage: React.FC = () => {
                     color="#3B82F6"
                     _hover={{ bg: 'rgba(59, 130, 246, 0.2)' }}
                     borderRadius="8px"
+                    minHeight="44px"
+                    padding="10px 16px"
                     onClick={() => setEditingEvent(event)}
                     flex={{ base: '1', sm: '0 1 auto' }}
                     width={{ base: '100%', sm: 'auto' }}
@@ -590,6 +602,8 @@ const EventsPage: React.FC = () => {
                     color="#ef4444"
                     _hover={{ bg: 'rgba(239, 68, 68, 0.2)' }}
                     borderRadius="8px"
+                    minHeight="44px"
+                    padding="10px 16px"
                     onClick={() => handleDeleteEvent(event.id, event.title)}
                     flex={{ base: '1', sm: '0 1 auto' }}
                     width={{ base: '100%', sm: 'auto' }}

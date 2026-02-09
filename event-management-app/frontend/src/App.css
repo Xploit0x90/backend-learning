@@ -1,7 +1,15 @@
 /* Minimal CSS - Most styling is now handled by Chakra UI */
 .App {
   min-height: 100vh;
+  min-height: 100dvh;
   position: relative;
+  overflow-x: hidden;
+}
+
+/* Prevent horizontal overflow on mobile */
+html, body {
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Dark mode body background - Chakra UI handles component styling */

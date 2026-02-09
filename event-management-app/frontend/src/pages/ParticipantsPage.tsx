@@ -310,6 +310,8 @@ const ParticipantsPage: React.FC = () => {
               padding={{ base: '16px', md: '20px', lg: '24px' }}
               cursor="pointer"
               transition="all 0.3s ease"
+              overflow="hidden"
+              minWidth="0"
               _hover={{
                 transform: 'translateY(-4px)',
                 boxShadow: '0 12px 40px rgba(0, 0, 0, 0.12)',
@@ -317,8 +319,8 @@ const ParticipantsPage: React.FC = () => {
               }}
               onClick={() => navigate(`/participants/${participant.id}`)}
             >
-              <VStack align="stretch" spacing={{ base: '12px', md: '16px' }}>
-                <Flex alignItems="center" gap={{ base: '12px', md: '16px' }} flexWrap="wrap">
+              <VStack align="stretch" spacing={{ base: '12px', md: '16px' }} minWidth="0">
+                <Flex alignItems="center" gap={{ base: '12px', md: '16px' }} flexWrap="wrap" minWidth="0">
                   <Avatar
                     size={{ base: 'md', md: 'lg' }}
                     name={`${participant.first_name} ${participant.last_name}`}
@@ -334,33 +336,35 @@ const ParticipantsPage: React.FC = () => {
                       color={titleColor} 
                       noOfLines={1}
                       wordBreak="break-word"
+                      overflow="hidden"
+                      textOverflow="ellipsis"
                     >
                       {participant.first_name} {participant.last_name}
                     </Heading>
                   </VStack>
                 </Flex>
 
-                <VStack align="stretch" spacing="8px" fontSize={{ base: '13px', md: '14px' }} color={textColor}>
-                  <HStack spacing="8px" flexWrap="wrap">
+                <VStack align="stretch" spacing="8px" fontSize={{ base: '13px', md: '14px' }} color={textColor} minWidth="0">
+                  <HStack spacing="8px" flexWrap="wrap" minWidth="0">
                     <Icon as={Mail} boxSize="16px" color="#EB5E28" flexShrink={0} />
-                    <Text noOfLines={1} minWidth="0" flex="1">{participant.email}</Text>
+                    <Text noOfLines={1} minWidth="0" flex="1" overflow="hidden" textOverflow="ellipsis">{participant.email}</Text>
                   </HStack>
 
                   {participant.phone && (
-                    <HStack spacing="8px" flexWrap="wrap">
+                    <HStack spacing="8px" flexWrap="wrap" minWidth="0">
                       <Icon as={Phone} boxSize="16px" color="#EB5E28" flexShrink={0} />
-                      <Text>{participant.phone}</Text>
+                      <Text noOfLines={1} minWidth="0">{participant.phone}</Text>
                     </HStack>
                   )}
 
                   {participant.study_program && (
-                    <HStack spacing="8px" flexWrap="wrap">
+                    <HStack spacing="8px" flexWrap="wrap" minWidth="0">
                       <Icon as={GraduationCap} boxSize="16px" color="#EB5E28" flexShrink={0} />
-                      <Text>{participant.study_program}</Text>
+                      <Text noOfLines={1} minWidth="0">{participant.study_program}</Text>
                     </HStack>
                   )}
 
-                  <HStack spacing="8px" flexWrap="wrap">
+                  <HStack spacing="8px" flexWrap="wrap" minWidth="0">
                     <Icon as={Calendar} boxSize="16px" color="#EB5E28" flexShrink={0} />
                     <Text>
                       {t('participants.eventCount', { count: participant.event_count || 0 })}
@@ -376,8 +380,9 @@ const ParticipantsPage: React.FC = () => {
                     fontSize={{ base: '12px', md: '13px' }}
                     color={textColor}
                     opacity={0.8}
+                    minWidth="0"
                   >
-                    <Text noOfLines={2}>{participant.notes}</Text>
+                    <Text noOfLines={2} overflow="hidden" textOverflow="ellipsis">{participant.notes}</Text>
                   </Box>
                 )}
 
@@ -396,7 +401,7 @@ const ParticipantsPage: React.FC = () => {
                     borderRadius="8px"
                     flex={{ base: '1', sm: '0 1 auto' }}
                     padding="12px 24px"
-                    minHeight="40px"
+                    minHeight="44px"
                     fontWeight={600}
                     whiteSpace="nowrap"
                     width={{ base: '100%', sm: 'auto' }}
@@ -413,7 +418,7 @@ const ParticipantsPage: React.FC = () => {
                     borderRadius="8px"
                     flex={{ base: '1', sm: '0 1 auto' }}
                     padding="12px 20px"
-                    minHeight="40px"
+                    minHeight="44px"
                     fontWeight={600}
                     whiteSpace="nowrap"
                     width={{ base: '100%', sm: 'auto' }}

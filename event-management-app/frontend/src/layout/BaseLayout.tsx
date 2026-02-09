@@ -166,7 +166,7 @@ export const BaseLayout: React.FC<BaseLayoutProps> = ({ children }) => {
         </Flex>
       </chakra.nav>
 
-      {/* Sidebar Navigation */}
+      {/* Sidebar Navigation - hidden on mobile, shown from md up */}
       <chakra.aside
         className="sidebar"
         position="fixed"
@@ -180,7 +180,7 @@ export const BaseLayout: React.FC<BaseLayoutProps> = ({ children }) => {
         padding={{ base: '8px 0', sm: '12px 0', md: '16px 0', lg: '20px 0' }}
         boxShadow={darkMode ? '0 8px 32px rgba(0, 0, 0, 0.4)' : '0 8px 32px rgba(0, 0, 0, 0.08)'}
         zIndex={999}
-        display="block"
+        display={{ base: 'none', md: 'block' }}
       >
         <Flex
           as="nav"
@@ -435,14 +435,131 @@ export const BaseLayout: React.FC<BaseLayoutProps> = ({ children }) => {
         </Flex>
       </chakra.aside>
 
-      {/* Content Area */}
+      {/* Mobile Bottom Navigation - visible only on small screens */}
+      <Flex
+        display={{ base: 'flex', md: 'none' }}
+        position="fixed"
+        bottom="0"
+        left="0"
+        right="0"
+        height="64px"
+        paddingBottom="env(safe-area-inset-bottom, 0px)"
+        bg={darkMode ? 'rgba(32, 32, 30, 0.95)' : 'rgba(255, 255, 255, 0.95)'}
+        backdropFilter="blur(20px)"
+        borderTop={darkMode ? '1px solid rgba(255, 255, 255, 0.08)' : '1px solid rgba(204, 197, 185, 0.3)'}
+        zIndex={1000}
+        alignItems="center"
+        justifyContent="space-around"
+        paddingX="8px"
+        paddingY="8px"
+        boxShadow="0 -4px 24px rgba(0, 0, 0, 0.08)"
+      >
+        <Box
+          as={Link}
+          to="/home"
+          className={isActive('/home') ? 'active' : ''}
+          display="flex"
+          flexDirection="column"
+          alignItems="center"
+          justifyContent="center"
+          gap="2px"
+          padding="8px 12px"
+          borderRadius="12px"
+          color={isActive('/home') ? 'white' : (darkMode ? '#cfcac3' : '#666')}
+          textDecoration="none"
+          fontSize="11px"
+          fontWeight={500}
+          minWidth="56px"
+          bg={isActive('/home') ? 'linear-gradient(135deg, #EB5E28 0%, #d94d1a 100%)' : 'transparent'}
+          _active={{ opacity: 0.9 }}
+          sx={{ '&.active': { boxShadow: '0 4px 12px rgba(235, 94, 40, 0.4)' } }}
+        >
+          <Home size={22} />
+          <span>{t('nav.home')}</span>
+        </Box>
+        <Box
+          as={Link}
+          to="/events"
+          className={isActive('/events') ? 'active' : ''}
+          display="flex"
+          flexDirection="column"
+          alignItems="center"
+          justifyContent="center"
+          gap="2px"
+          padding="8px 12px"
+          borderRadius="12px"
+          color={isActive('/events') ? 'white' : (darkMode ? '#cfcac3' : '#666')}
+          textDecoration="none"
+          fontSize="11px"
+          fontWeight={500}
+          minWidth="56px"
+          bg={isActive('/events') ? 'linear-gradient(135deg, #EB5E28 0%, #d94d1a 100%)' : 'transparent'}
+          _active={{ opacity: 0.9 }}
+          sx={{ '&.active': { boxShadow: '0 4px 12px rgba(235, 94, 40, 0.4)' } }}
+        >
+          <Calendar size={22} />
+          <span>{t('nav.events')}</span>
+        </Box>
+        <Box
+          as={Link}
+          to="/participants"
+          className={isActive('/participants') ? 'active' : ''}
+          display="flex"
+          flexDirection="column"
+          alignItems="center"
+          justifyContent="center"
+          gap="2px"
+          padding="8px 12px"
+          borderRadius="12px"
+          color={isActive('/participants') ? 'white' : (darkMode ? '#cfcac3' : '#666')}
+          textDecoration="none"
+          fontSize="11px"
+          fontWeight={500}
+          minWidth="56px"
+          bg={isActive('/participants') ? 'linear-gradient(135deg, #EB5E28 0%, #d94d1a 100%)' : 'transparent'}
+          _active={{ opacity: 0.9 }}
+          sx={{ '&.active': { boxShadow: '0 4px 12px rgba(235, 94, 40, 0.4)' } }}
+        >
+          <Users size={22} />
+          <span>{t('nav.participants')}</span>
+        </Box>
+        <Box
+          as={Link}
+          to="/tags"
+          className={isActive('/tags') ? 'active' : ''}
+          display="flex"
+          flexDirection="column"
+          alignItems="center"
+          justifyContent="center"
+          gap="2px"
+          padding="8px 12px"
+          borderRadius="12px"
+          color={isActive('/tags') ? 'white' : (darkMode ? '#cfcac3' : '#666')}
+          textDecoration="none"
+          fontSize="11px"
+          fontWeight={500}
+          minWidth="56px"
+          bg={isActive('/tags') ? 'linear-gradient(135deg, #EB5E28 0%, #d94d1a 100%)' : 'transparent'}
+          _active={{ opacity: 0.9 }}
+          sx={{ '&.active': { boxShadow: '0 4px 12px rgba(235, 94, 40, 0.4)' } }}
+        >
+          <Tag size={22} />
+          <span>{t('nav.tags')}</span>
+        </Box>
+      </Flex>
+
+      {/* Content Area - full width on mobile with bottom padding for nav */}
       <Box
         className="main-content"
-        marginLeft={{ base: '180px', sm: '200px', md: '240px', lg: '280px' }}
-        marginTop={{ base: '90px', md: '110px', lg: '120px' }}
-        marginRight={{ base: '10px', md: '20px' }}
-        padding={{ base: '15px', md: '20px' }}
-        minH="calc(100vh - 140px)"
+        marginLeft={{ base: 0, md: '240px', lg: '280px' }}
+        marginTop={{ base: '76px', sm: '76px', md: '110px', lg: '120px' }}
+        marginRight={{ base: 0, md: '20px' }}
+        marginBottom={{ base: 0, md: 0 }}
+        padding={{ base: '12px', sm: '14px', md: '20px' }}
+        paddingBottom={{ base: 'calc(72px + env(safe-area-inset-bottom, 0px))', md: '20px' }}
+        minH={{ base: 'calc(100vh - 76px)', md: 'calc(100vh - 140px)' }}
+        maxWidth="100%"
+        overflowX="hidden"
       >
         {children}
       </Box>
