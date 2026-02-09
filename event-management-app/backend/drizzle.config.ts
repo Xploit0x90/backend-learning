@@ -16,4 +16,8 @@ export default defineConfig({
   out: "./drizzle",
   dialect: "postgresql",
   dbCredentials: { url: getDatabaseUrl() },
+  migrations: {
+    table: "__drizzle_migrations",
+    schema: "public",
+  },
 });
