@@ -4,6 +4,10 @@ module.exports = {
   transform: {
     '^.+.tsx?$': ['ts-jest', {}],
   },
+  // Resolve .js imports to .ts source (codebase uses .js in imports for ESM output)
+  moduleNameMapper: {
+    '^(\\.{1,2}/.*)\\.js$': '$1',
+  },
   // ignore test/helpers and controller specs that target old repository-based architecture
   testPathIgnorePatterns: [
     '<rootDir>/test/helpers/',
