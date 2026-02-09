@@ -109,6 +109,22 @@ Postman collection: `backend/docs/Event-Management-API.postman_collection.json`
 
 ---
 
+## Deploy on Vercel (frontend only)
+
+1. **Deploy the backend elsewhere** (e.g. [Railway](https://railway.app), [Render](https://render.com), [Fly.io](https://fly.io)) so it’s always running. Set `DATABASE_URL` and optional `WEATHER_API_KEY` there.
+
+2. **Deploy this project to Vercel** (from the `event-management-app` folder or repo):
+   - Connect the repo; Vercel will use the existing `vercel.json` (builds `frontend`, outputs `frontend/dist`).
+   - In **Project → Settings → Environment Variables** add:
+     - `VITE_API_URL` = your backend API base URL, e.g. `https://your-app.railway.app/api`
+   - Redeploy so the frontend is built with that URL.
+
+3. **CORS:** On the backend host, set env `CORS_ORIGIN=https://your-project.vercel.app` (or comma-separated list). If unset, all origins are allowed.
+
+**Note:** Vercel hosts the React app only. It does not run the Express backend; that must be deployed on a Node-friendly platform.
+
+---
+
 ## Scripts
 
 **Backend:** `npm run dev` | `npm run build` | `npm run db:push` | `npm run db:seed` | `npm test`  

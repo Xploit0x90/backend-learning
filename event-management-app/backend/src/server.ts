@@ -30,8 +30,11 @@ async function checkAndSeed() {
   }
 }
 
+const corsOrigin = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(",").map((o) => o.trim()).filter(Boolean)
+  : true;
 const server = express();
-server.use(cors({ origin: true, credentials: true }));
+server.use(cors({ origin: corsOrigin, credentials: true }));
 server.use(express.json());
 server.use(logger);
 
