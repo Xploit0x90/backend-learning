@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { getEventById, getAllParticipants, getAllTags, addParticipantToEvent, removeParticipantFromEvent, addTagToEvent, removeTagFromEvent, deleteEvent, getWeather } from '../adapter/api/useApiClient';
 import { Event, Participant, Tag, Weather } from '../types';
 import { ArrowLeft, Calendar, MapPin, Users, Clock, Edit2, Trash2, Plus, X, Cloud, Droplets, Wind } from 'lucide-react';
@@ -26,7 +27,7 @@ const EventDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const toast = useToast();
-  
+  const { t } = useTranslation();
   const [event, setEvent] = useState<Event | null>(null);
   const [allParticipants, setAllParticipants] = useState<Participant[]>([]);
   const [allTags, setAllTags] = useState<Tag[]>([]);
@@ -76,7 +77,7 @@ const EventDetailPage: React.FC = () => {
       setEvent(data);
       setError(null);
     } catch (err) {
-      setError('Event nicht gefunden');
+      setError(t('eventDetail.notFound'));
       console.error(err);
     } finally {
       setLoading(false);
@@ -111,7 +112,7 @@ const EventDetailPage: React.FC = () => {
         err.response?.data?.message?.includes('Weather API key not configured') ||
         err.response?.data?.message?.includes('Wetter-API-Schlüssel nicht konfiguriert')
       )) {
-        setError('Wetter-API-Schlüssel nicht konfiguriert. Bitte WEATHER_API_KEY in backend/.env hinzufügen.');
+        setError(t('eventDetail.weatherApiNotConfigured'));
       } else {
         setWeather(null);
       }
@@ -126,7 +127,7 @@ const EventDetailPage: React.FC = () => {
       loadEventDetails();
       setShowAddParticipant(false);
       toast({
-        title: 'Teilnehmer hinzugefügt',
+        title: t('eventDetail.participantAdded'),
         status: 'success',
         duration: 3000,
         isClosable: true,
@@ -134,8 +135,8 @@ const EventDetailPage: React.FC = () => {
     } catch (err: any) {
       if (err.response?.status === 409) {
         toast({
-          title: 'Fehler',
-          description: 'Teilnehmer ist bereits angemeldet',
+          title: t('common.error'),
+          description: t('eventDetail.participantAlreadyRegistered'),
           status: 'error',
           duration: 3000,
           isClosable: true,
@@ -158,7 +159,7 @@ const EventDetailPage: React.FC = () => {
         await removeParticipantFromEvent(participantId, Number(id));
         loadEventDetails();
         toast({
-          title: 'Teilnehmer entfernt',
+          title: t('eventDetail.participantRemoved'),
           status: 'success',
           duration: 3000,
           isClosable: true,
@@ -181,7 +182,7 @@ const EventDetailPage: React.FC = () => {
       loadEventDetails();
       setShowAddTag(false);
       toast({
-        title: 'Tag hinzugefügt',
+        title: t('eventDetail.tagAdded'),
         status: 'success',
         duration: 3000,
         isClosable: true,
@@ -190,7 +191,7 @@ const EventDetailPage: React.FC = () => {
       if (err.response?.status === 409) {
         toast({
           title: 'Fehler',
-          description: 'Tag ist bereits zugewiesen',
+          description: t('eventDetail.tagAlreadyAdded'),
           status: 'error',
           duration: 3000,
           isClosable: true,
@@ -212,7 +213,7 @@ const EventDetailPage: React.FC = () => {
       await removeTagFromEvent(tagId, Number(id));
       loadEventDetails();
       toast({
-        title: 'Tag entfernt',
+        title: t('eventDetail.tagRemoved'),
         status: 'success',
         duration: 3000,
         isClosable: true,
@@ -244,7 +245,7 @@ const EventDetailPage: React.FC = () => {
       } catch (err) {
         toast({
           title: 'Fehler',
-          description: 'Fehler beim Löschen des Events',
+          description: t('events.deleteError'),
           status: 'error',
           duration: 3000,
           isClosable: true,
@@ -292,7 +293,7 @@ const EventDetailPage: React.FC = () => {
         borderRadius="12px"
         mb="20px"
       >
-        Zurück zu Events
+        {t('eventDetail.backToEvents')}
       </Button>
 
       {/* Event Header */}
@@ -391,7 +392,7 @@ const EventDetailPage: React.FC = () => {
                 flex={{ base: '1', sm: '0 1 auto' }}
                 minWidth={{ base: '120px', sm: 'auto' }}
               >
-                Bearbeiten
+                {t('common.edit')}
               </Button>
               <Button
                 leftIcon={<Icon as={Trash2} boxSize={{ base: '16px', md: '18px' }} />}
@@ -404,7 +405,7 @@ const EventDetailPage: React.FC = () => {
                 flex={{ base: '1', sm: '0 1 auto' }}
                 minWidth={{ base: '120px', sm: 'auto' }}
               >
-                Löschen
+                {t('common.delete')}
               </Button>
             </HStack>
           </Flex>
@@ -425,7 +426,7 @@ const EventDetailPage: React.FC = () => {
           <Flex justifyContent="space-between" alignItems="center" mb="20px">
             <Heading fontSize="24px" fontWeight={700} color={titleColor} display="flex" alignItems="center" gap="12px">
               <Icon as={Cloud} boxSize="24px" />
-              Wetter
+              {t('eventDetail.weather')}
             </Heading>
             <Text fontSize="14px" color={textColor}>
               {weather.location}, {weather.country}
@@ -484,7 +485,7 @@ const EventDetailPage: React.FC = () => {
           textAlign="center"
         >
           <Spinner size="md" color="#EB5E28" />
-          <Text mt="12px" color={textColor}>Lade Wetterdaten...</Text>
+          <Text mt="12px" color={textColor}>{t('eventDetail.loadingWeather')}</Text>
         </Card>
       )}
 

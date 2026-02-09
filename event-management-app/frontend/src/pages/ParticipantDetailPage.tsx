@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { getParticipantById } from '../adapter/api/useApiClient';
 import { Participant, Event } from '../types';
 import { ArrowLeft, Calendar, MapPin, Users, Clock, Mail, Phone, GraduationCap, FileText } from 'lucide-react';
@@ -24,7 +25,7 @@ import {
 const ParticipantDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  
+  const { t } = useTranslation();
   const [participant, setParticipant] = useState<Participant | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -59,7 +60,7 @@ const ParticipantDetailPage: React.FC = () => {
       setParticipant(data);
       setError(null);
     } catch (err) {
-      setError('Teilnehmer nicht gefunden');
+      setError(t('participantDetail.notFound'));
       console.error(err);
     } finally {
       setLoading(false);
@@ -78,7 +79,7 @@ const ParticipantDetailPage: React.FC = () => {
     return (
       <Box textAlign="center" padding="60px">
         <Spinner size="xl" color="#EB5E28" />
-        <Text mt="20px" fontSize="18px" color={textColor}>Lade Teilnehmer...</Text>
+        <Text mt="20px" fontSize="18px" color={textColor}>{t('participantDetail.loading')}</Text>
       </Box>
     );
   }
@@ -88,7 +89,7 @@ const ParticipantDetailPage: React.FC = () => {
       <VStack spacing="20px">
         <Alert status="error" borderRadius="12px">
           <AlertIcon />
-          {error || 'Teilnehmer nicht gefunden'}
+          {error || t('participantDetail.notFound')}
         </Alert>
         <Button
           leftIcon={<Icon as={ArrowLeft} boxSize="18px" />}
@@ -97,7 +98,7 @@ const ParticipantDetailPage: React.FC = () => {
           color="white"
           _hover={{ bg: '#d94d1a' }}
         >
-          Zurück zur Übersicht
+          {t('participantDetail.backToList')}
         </Button>
       </VStack>
     );
@@ -128,7 +129,7 @@ const ParticipantDetailPage: React.FC = () => {
           borderRadius="12px"
           mb="20px"
         >
-          Zurück
+          {t('common.back')}
         </Button>
         <Flex alignItems="center" gap="24px" flexWrap="wrap">
           <Avatar
@@ -176,7 +177,7 @@ const ParticipantDetailPage: React.FC = () => {
         mb="20px"
       >
         <Heading fontSize="24px" fontWeight={700} color={titleColor} mb="20px">
-          Teilnehmer-Informationen
+          {t('participantDetail.participantInfo')}
         </Heading>
         <Grid templateColumns={{ base: '1fr', md: 'repeat(2, 1fr)' }} gap="20px">
           <VStack align="flex-start" spacing="4px">
@@ -251,7 +252,7 @@ const ParticipantDetailPage: React.FC = () => {
         <Flex justifyContent="space-between" alignItems="center" mb="20px" flexWrap="wrap" gap="12px">
           <Heading fontSize="24px" fontWeight={700} color={titleColor} display="flex" alignItems="center" gap="12px">
             <Icon as={Calendar} boxSize="24px" />
-            Events ({events.length})
+            {t('participantDetail.eventsSection', { count: events.length })}
           </Heading>
           <HStack spacing="12px">
             <Badge
@@ -262,7 +263,7 @@ const ParticipantDetailPage: React.FC = () => {
               fontSize="12px"
               fontWeight={600}
             >
-              {upcomingEvents.length} Kommend
+              {upcomingEvents.length} {t('participantDetail.upcoming')}
             </Badge>
             <Badge
               bg="#6B7280"
@@ -272,7 +273,7 @@ const ParticipantDetailPage: React.FC = () => {
               fontSize="12px"
               fontWeight={600}
             >
-              {pastEvents.length} Vergangen
+              {pastEvents.length} {t('participantDetail.past')}
             </Badge>
           </HStack>
         </Flex>
@@ -281,7 +282,7 @@ const ParticipantDetailPage: React.FC = () => {
           <Box textAlign="center" padding="60px">
             <Icon as={Calendar} boxSize="48px" opacity={0.3} mb="16px" />
             <Text fontSize="16px" color={textColor}>
-              Dieser Teilnehmer ist noch bei keinem Event angemeldet.
+              {t('participantDetail.noEvents')}
             </Text>
           </Box>
         ) : (
@@ -292,7 +293,7 @@ const ParticipantDetailPage: React.FC = () => {
                 <HStack spacing="8px" mb="16px">
                   <Box width="8px" height="8px" borderRadius="50%" bg="#10B981" />
                   <Heading fontSize="20px" fontWeight={700} color={titleColor}>
-                    Kommende Events ({upcomingEvents.length})
+                    {t('tags.upcomingEvents', { count: upcomingEvents.length })}
                   </Heading>
                 </HStack>
                 <Grid templateColumns={{ base: '1fr', md: 'repeat(2, 1fr)' }} gap="16px">
@@ -309,7 +310,7 @@ const ParticipantDetailPage: React.FC = () => {
                 <HStack spacing="8px" mb="16px">
                   <Box width="8px" height="8px" borderRadius="50%" bg="#6B7280" />
                   <Heading fontSize="20px" fontWeight={700} color={titleColor}>
-                    Vergangene Events ({pastEvents.length})
+                    {t('tags.pastEvents', { count: pastEvents.length })}
                   </Heading>
                 </HStack>
                 <Grid templateColumns={{ base: '1fr', md: 'repeat(2, 1fr)' }} gap="16px">

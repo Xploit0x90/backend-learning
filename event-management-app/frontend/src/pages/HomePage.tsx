@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { getAllEvents, getAllParticipants, getAllTags } from '../adapter/api/useApiClient';
 import { Event } from '../types';
 import { CalendarDays, Users, Tag as TagIcon, Plus, ArrowRight, MapPin, Clock } from 'lucide-react';
@@ -18,6 +19,7 @@ import {
 
 export const HomePage: React.FC = () => {
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation();
   const [stats, setStats] = useState({
     totalEvents: 0,
     totalParticipants: 0,
@@ -82,15 +84,15 @@ export const HomePage: React.FC = () => {
 
   const getGreeting = () => {
     const hour = new Date().getHours();
-    if (hour < 12) return 'Guten Morgen';
-    if (hour < 18) return 'Guten Tag';
-    return 'Guten Abend';
+    if (hour < 12) return t('home.greetingMorning');
+    if (hour < 18) return t('home.greetingAfternoon');
+    return t('home.greetingEvening');
   };
 
   if (loading) {
     return (
       <Box textAlign="center" padding="60px" fontSize="18px" color={textColor}>
-        Lade Dashboard...
+        {t('home.loadingDashboard')}
       </Box>
     );
   }
@@ -125,7 +127,7 @@ export const HomePage: React.FC = () => {
               {getGreeting()}! 👋
             </Heading>
             <Text fontSize={{ base: '14px', md: '15px', lg: '16px' }} color={subtitleColor}>
-              Hier ist deine Event-Übersicht für heute
+              {t('home.subtitle')}
             </Text>
           </VStack>
           <Box
@@ -139,7 +141,7 @@ export const HomePage: React.FC = () => {
             textAlign={{ base: 'center', md: 'left' }}
             width={{ base: '100%', md: 'auto' }}
           >
-            {new Date().toLocaleDateString('de-DE', {
+            {new Date().toLocaleDateString(i18n.language === 'de' ? 'de-DE' : 'en-US', {
               weekday: 'long',
               year: 'numeric',
               month: 'long',
@@ -219,7 +221,7 @@ export const HomePage: React.FC = () => {
                 textOverflow="ellipsis"
                 width="100%"
               >
-                Events
+                {t('common.events')}
               </Text>
             </VStack>
           </Flex>
@@ -289,7 +291,7 @@ export const HomePage: React.FC = () => {
                 textOverflow="ellipsis"
                 width="100%"
               >
-                Teilnehmer
+                {t('common.participants')}
               </Text>
             </VStack>
           </Flex>
@@ -359,7 +361,7 @@ export const HomePage: React.FC = () => {
                 textOverflow="ellipsis"
                 width="100%"
               >
-                Tags
+                {t('common.tags')}
               </Text>
             </VStack>
           </Flex>
@@ -369,7 +371,7 @@ export const HomePage: React.FC = () => {
       {/* Quick Actions */}
       <Box mb="30px">
         <Heading fontSize={{ base: '20px', md: '22px', lg: '24px' }} fontWeight={700} color={titleColor} mb="20px">
-          Quick Actions
+          {t('home.quickActions')}
         </Heading>
         <Grid templateColumns={{ base: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' }} gap={{ base: '12px', md: '15px' }}>
           <Card
@@ -393,7 +395,7 @@ export const HomePage: React.FC = () => {
             <VStack spacing="12px">
               <Icon as={Plus} boxSize="24px" color={textColor} />
               <Text fontWeight={600} fontSize="15px" color={textColor}>
-                Neues Event erstellen
+                {t('home.createEvent')}
               </Text>
             </VStack>
           </Card>
@@ -419,7 +421,7 @@ export const HomePage: React.FC = () => {
             <VStack spacing="12px">
               <Icon as={Plus} boxSize="24px" color={textColor} />
               <Text fontWeight={600} fontSize="15px" color={textColor}>
-                Teilnehmer hinzufügen
+                {t('home.addParticipant')}
               </Text>
             </VStack>
           </Card>
@@ -445,7 +447,7 @@ export const HomePage: React.FC = () => {
             <VStack spacing="12px">
               <Icon as={Plus} boxSize="24px" color={textColor} />
               <Text fontWeight={600} fontSize="15px" color={textColor}>
-                Neuer Tag erstellen
+                {t('home.createTag')}
               </Text>
             </VStack>
           </Card>
@@ -456,7 +458,7 @@ export const HomePage: React.FC = () => {
       <Box mb="30px">
         <Flex justifyContent="space-between" alignItems={{ base: 'flex-start', md: 'center' }} mb="20px" flexDirection={{ base: 'column', md: 'row' }} gap="10px">
           <Heading fontSize={{ base: '20px', md: '22px', lg: '24px' }} fontWeight={700} color={titleColor}>
-            Kommende Events
+            {t('home.upcomingEvents')}
           </Heading>
           <Box
             as={Link}
@@ -471,7 +473,7 @@ export const HomePage: React.FC = () => {
             transition="all 0.3s ease"
             _hover={{ gap: '10px' }}
           >
-            Alle anzeigen <Icon as={ArrowRight} boxSize="16px" />
+            {t('home.showAll')} <Icon as={ArrowRight} boxSize="16px" />
           </Box>
         </Flex>
 
@@ -488,7 +490,7 @@ export const HomePage: React.FC = () => {
             <VStack spacing="15px">
               <Icon as={CalendarDays} boxSize="48px" opacity={0.3} />
               <Text fontSize="16px" mb="20px">
-                Keine kommenden Events geplant
+                {t('home.noUpcomingEvents')}
               </Text>
               <Button
                 as={Link}
@@ -500,7 +502,7 @@ export const HomePage: React.FC = () => {
                 padding="12px 24px"
                 fontWeight={600}
               >
-                Erstes Event erstellen
+                {t('home.createFirstEvent')}
               </Button>
             </VStack>
           </Card>
@@ -570,7 +572,7 @@ export const HomePage: React.FC = () => {
                     flexShrink={0}
                   >
                     <Text fontSize={{ base: '11px', md: '12px' }} fontWeight={600} textTransform="uppercase" opacity={0.9}>
-                      {new Date(event.date).toLocaleDateString('de-DE', { month: 'short' })}
+                      {new Date(event.date).toLocaleDateString(i18n.language === 'de' ? 'de-DE' : 'en-US', { month: 'short' })}
                     </Text>
                     <Text fontSize={{ base: '24px', md: '28px' }} fontWeight={800} lineHeight="1">
                       {new Date(event.date).getDate()}
@@ -587,7 +589,7 @@ export const HomePage: React.FC = () => {
                     <HStack spacing="6px" color={textColor} fontSize={{ base: '13px', md: '14px' }} flexWrap="wrap">
                       <Icon as={Clock} boxSize="16px" flexShrink={0} />
                       <Text>
-                        {new Date(event.date).toLocaleTimeString('de-DE', {
+                        {new Date(event.date).toLocaleTimeString(i18n.language === 'de' ? 'de-DE' : 'en-US', {
                           hour: '2-digit',
                           minute: '2-digit',
                         })}
@@ -620,7 +622,7 @@ export const HomePage: React.FC = () => {
                       boxShadow: '0 4px 12px rgba(235, 94, 40, 0.3)',
                     }}
                   >
-                    Details <Icon as={ArrowRight} boxSize="16px" ml="8px" />
+                    {t('common.details')} <Icon as={ArrowRight} boxSize="16px" ml="8px" />
                   </Button>
                 </Flex>
               </Card>
@@ -639,7 +641,7 @@ export const HomePage: React.FC = () => {
         padding="30px"
       >
         <Heading fontSize="24px" fontWeight={700} color={titleColor} mb="20px">
-          Letzte Aktivitäten
+          {t('home.recentActivity')}
         </Heading>
         <VStack spacing="15px" align="stretch">
           <Flex gap="15px" alignItems="flex-start" padding="15px" bg={isDark ? 'rgba(50, 48, 46, 0.5)' : 'rgba(255, 255, 255, 0.5)'} borderRadius="12px" transition="all 0.3s ease" _hover={{ bg: isDark ? 'rgba(50, 48, 46, 0.8)' : 'rgba(255, 255, 255, 0.8)', transform: 'translateX(5px)' }}>
@@ -658,10 +660,10 @@ export const HomePage: React.FC = () => {
             </Box>
             <VStack align="flex-start" spacing="4px" flex="1">
               <Text fontSize="15px" color={titleColor}>
-                <Text as="strong">Neues Event</Text> wurde erstellt
+                {t('home.newEventCreated')}
               </Text>
               <Text fontSize="13px" color={textColor} opacity={0.7}>
-                Vor 2 Stunden
+                {t('home.hoursAgo')}
               </Text>
             </VStack>
           </Flex>
@@ -682,10 +684,10 @@ export const HomePage: React.FC = () => {
             </Box>
             <VStack align="flex-start" spacing="4px" flex="1">
               <Text fontSize="15px" color={titleColor}>
-                <Text as="strong">3 neue Teilnehmer</Text> haben sich registriert
+                {t('home.newParticipantsRegistered')}
               </Text>
               <Text fontSize="13px" color={textColor} opacity={0.7}>
-                Vor 5 Stunden
+                {t('home.fiveHoursAgo')}
               </Text>
             </VStack>
           </Flex>
@@ -706,10 +708,10 @@ export const HomePage: React.FC = () => {
             </Box>
             <VStack align="flex-start" spacing="4px" flex="1">
               <Text fontSize="15px" color={titleColor}>
-                <Text as="strong">Tag "Sport"</Text> wurde hinzugefügt
+                {t('home.tagAdded')}
               </Text>
               <Text fontSize="13px" color={textColor} opacity={0.7}>
-                Gestern
+                {t('home.yesterday')}
               </Text>
             </VStack>
           </Flex>

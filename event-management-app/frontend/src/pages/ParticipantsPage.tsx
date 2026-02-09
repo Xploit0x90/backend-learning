@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Participant } from '../types';
 import { Users, Mail, Phone, GraduationCap, Calendar, Plus, Search, Edit2, Trash2 } from 'lucide-react';
 import CreateParticipantModal from '../components/CreateParticipantModal';
@@ -28,6 +29,7 @@ import {
 const ParticipantsPage: React.FC = () => {
   const navigate = useNavigate();
   const toast = useToast();
+  const { t } = useTranslation();
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -74,10 +76,10 @@ const ParticipantsPage: React.FC = () => {
     } catch (err: any) {
       const isNetworkError = !err?.response && (err?.code === 'ERR_NETWORK' || err?.message?.includes('Network Error'));
       const errorMessage = isNetworkError
-        ? 'Backend nicht erreichbar. Bitte starten Sie den Server (npm run dev im backend-Ordner).'
+        ? t('participants.backendUnavailable')
         : (err?.response?.data?.message ||
            err?.response?.data?.error ||
-           'Fehler beim Laden der Teilnehmer');
+           t('participants.loadError'));
       setError(errorMessage);
       console.error('Error loading participants:', err?.response?.data || err);
     } finally {
@@ -86,21 +88,21 @@ const ParticipantsPage: React.FC = () => {
   };
 
   const handleDeleteParticipant = async (id: number, name: string) => {
-    if (window.confirm(`Teilnehmer "${name}" wirklich löschen?`)) {
+    if (window.confirm(t('participants.deleteConfirm', { name }))) {
       try {
         await deleteParticipant(id);
         loadParticipants();
         toast({
-          title: 'Teilnehmer gelöscht',
-          description: `"${name}" wurde erfolgreich gelöscht`,
+          title: t('participants.deleted'),
+          description: t('participants.deletedDescription', { name }),
           status: 'success',
           duration: 3000,
           isClosable: true,
         });
       } catch (err) {
         toast({
-          title: 'Fehler',
-          description: 'Fehler beim Löschen des Teilnehmers',
+          title: t('common.error'),
+          description: t('participants.deleteError'),
           status: 'error',
           duration: 3000,
           isClosable: true,
@@ -113,7 +115,7 @@ const ParticipantsPage: React.FC = () => {
   if (loading) {
     return (
       <Box textAlign="center" padding="60px" fontSize="18px" color={textColor}>
-        Lade Teilnehmer...
+        {t('participants.loading')}
       </Box>
     );
   }
@@ -164,10 +166,10 @@ const ParticipantsPage: React.FC = () => {
               flexWrap="wrap"
             >
               <Icon as={Users} boxSize={{ base: '24px', md: '28px', lg: '32px' }} />
-              Teilnehmer
+              {t('participants.title')}
             </Heading>
             <Text fontSize={{ base: '14px', md: '15px' }} color={textColor}>
-              Verwalte alle registrierten Teilnehmer
+              {t('participants.manageAll')}
             </Text>
           </VStack>
           <Button
@@ -183,7 +185,7 @@ const ParticipantsPage: React.FC = () => {
             onClick={() => setIsModalOpen(true)}
             width={{ base: '100%', md: 'auto' }}
           >
-            Neuer Teilnehmer
+            {t('participants.newParticipant')}
           </Button>
         </Flex>
       </Card>
@@ -204,7 +206,7 @@ const ParticipantsPage: React.FC = () => {
               {participants.length}
             </Heading>
             <Text fontSize="14px" color={textColor} fontWeight={600}>
-              Gesamt
+              {t('participants.total')}
             </Text>
           </VStack>
           <VStack spacing="8px">
@@ -212,7 +214,7 @@ const ParticipantsPage: React.FC = () => {
               {participants.filter(p => (p.event_count || 0) > 0).length}
             </Heading>
             <Text fontSize="14px" color={textColor} fontWeight={600}>
-              Aktiv
+              {t('participants.active')}
             </Text>
           </VStack>
           <VStack spacing="8px">
@@ -220,7 +222,7 @@ const ParticipantsPage: React.FC = () => {
               {participants.filter(p => (p.event_count || 0) === 0).length}
             </Heading>
             <Text fontSize="14px" color={textColor} fontWeight={600}>
-              Neu
+              {t('participants.new')}
             </Text>
           </VStack>
         </Grid>
@@ -233,7 +235,7 @@ const ParticipantsPage: React.FC = () => {
             <Icon as={Search} boxSize="18px" color={isDark ? '#b6b3ae' : '#403D39'} opacity={0.5} />
           </InputLeftElement>
           <Input
-            placeholder="Teilnehmer durchsuchen..."
+            placeholder={t('participants.searchPlaceholder')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             bg={isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(204, 197, 185, 0.15)'}
@@ -269,12 +271,12 @@ const ParticipantsPage: React.FC = () => {
             <Icon as={Users} boxSize="64px" opacity={0.3} />
             <VStack spacing="8px">
               <Heading fontSize="24px" color={titleColor}>
-                Keine Teilnehmer gefunden
+                {t('participants.noParticipants')}
               </Heading>
               <Text fontSize="16px" color={textColor}>
                 {searchQuery
-                  ? 'Versuche einen anderen Suchbegriff'
-                  : 'Füge deinen ersten Teilnehmer hinzu'}
+                  ? t('common.tryDifferentSearch')
+                  : t('participants.addFirst')}
               </Text>
             </VStack>
             <Button
@@ -288,7 +290,7 @@ const ParticipantsPage: React.FC = () => {
               fontSize="15px"
               onClick={() => setIsModalOpen(true)}
             >
-              Ersten Teilnehmer hinzufügen
+              {t('participants.addFirstButton')}
             </Button>
           </VStack>
         </Card>
@@ -358,8 +360,7 @@ const ParticipantsPage: React.FC = () => {
                   <HStack spacing="8px" flexWrap="wrap">
                     <Icon as={Calendar} boxSize="16px" color="#EB5E28" flexShrink={0} />
                     <Text>
-                      {participant.event_count || 0} Event
-                      {participant.event_count !== 1 ? 's' : ''}
+                      {t('participants.eventCount', { count: participant.event_count || 0 })}
                     </Text>
                   </HStack>
                 </VStack>
@@ -398,7 +399,7 @@ const ParticipantsPage: React.FC = () => {
                     width={{ base: '100%', sm: 'auto' }}
                     onClick={() => setEditingParticipant(participant)}
                   >
-                    Bearbeiten
+                    {t('common.edit')}
                   </Button>
                   <Button
                     size="sm"
@@ -418,7 +419,7 @@ const ParticipantsPage: React.FC = () => {
                       `${participant.first_name} ${participant.last_name}`
                     )}
                   >
-                    Löschen
+                    {t('common.delete')}
                   </Button>
                 </Flex>
               </VStack>

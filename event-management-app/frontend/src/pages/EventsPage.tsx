@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { getAllEvents, deleteEvent, getAllTags } from '../adapter/api/useApiClient';
 import { Event, Tag } from '../types';
 import { Plus, Eye, Edit2, Trash2, Search, X, Calendar } from 'lucide-react';
@@ -29,6 +30,7 @@ import {
 const EventsPage: React.FC = () => {
   const navigate = useNavigate();
   const toast = useToast();
+  const { t, i18n } = useTranslation();
   const [events, setEvents] = useState<Event[]>([]);
   const [tags, setTags] = useState<Tag[]>([]);
   const [loading, setLoading] = useState(true);
@@ -71,7 +73,7 @@ const EventsPage: React.FC = () => {
       setEvents(data);
       setError(null);
     } catch (err) {
-      setError('Fehler beim Laden der Events');
+      setError(t('events.loadError'));
       console.error(err);
     } finally {
       setLoading(false);
@@ -88,21 +90,21 @@ const EventsPage: React.FC = () => {
   };
 
   const handleDeleteEvent = async (id: number, title: string) => {
-    if (window.confirm(`Event "${title}" wirklich löschen?`)) {
+    if (window.confirm(t('events.deleteConfirm', { title }))) {
       try {
         await deleteEvent(id);
         loadEvents();
         toast({
-          title: 'Event gelöscht',
-          description: `"${title}" wurde erfolgreich gelöscht`,
+          title: t('events.deleted'),
+          description: t('events.deletedDescription', { title }),
           status: 'success',
           duration: 3000,
           isClosable: true,
         });
       } catch (err) {
         toast({
-          title: 'Fehler',
-          description: 'Fehler beim Löschen des Events',
+          title: t('common.error'),
+          description: t('events.deleteError'),
           status: 'error',
           duration: 3000,
           isClosable: true,
@@ -139,7 +141,7 @@ const EventsPage: React.FC = () => {
   if (loading) {
     return (
       <Box textAlign="center" padding="60px" fontSize="18px" color={textColor}>
-        Lade Events...
+        {t('events.loading')}
       </Box>
     );
   }
@@ -190,10 +192,10 @@ const EventsPage: React.FC = () => {
               flexWrap="wrap"
             >
               <Icon as={Calendar} boxSize={{ base: '24px', md: '28px', lg: '32px' }} />
-              Events
+              {t('events.title')}
             </Heading>
             <Text fontSize={{ base: '14px', md: '15px' }} color={textColor}>
-              Verwalte alle deine Events
+              {t('events.manageAll')}
             </Text>
           </VStack>
           <Button
@@ -209,7 +211,7 @@ const EventsPage: React.FC = () => {
             onClick={() => setIsModalOpen(true)}
             width={{ base: '100%', md: 'auto' }}
           >
-            Neues Event
+            {t('events.newEvent')}
           </Button>
         </Flex>
       </Card>
@@ -221,7 +223,7 @@ const EventsPage: React.FC = () => {
             <Icon as={Search} boxSize="18px" color={isDark ? '#b6b3ae' : '#403D39'} opacity={0.5} />
           </InputLeftElement>
           <Input
-            placeholder="Events durchsuchen..."
+            placeholder={t('events.searchPlaceholder')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             bg={isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(204, 197, 185, 0.15)'}
@@ -263,7 +265,7 @@ const EventsPage: React.FC = () => {
           {/* Date Filter */}
           <HStack spacing="8px" width={{ base: '100%', sm: 'auto' }} minWidth="0" flex={{ base: '1 1 100%', sm: '0 1 auto' }}>
             <Text fontSize={{ base: '13px', md: '14px' }} fontWeight={600} color={textColor} whiteSpace="nowrap" flexShrink={0}>
-              Zeitraum:
+              {t('events.filterDate')}:
             </Text>
             <Select
               value={filterDate}
@@ -279,16 +281,16 @@ const EventsPage: React.FC = () => {
               _hover={{ borderColor: '#EB5E28' }}
               _focus={{ borderColor: '#EB5E28', boxShadow: '0 0 0 3px rgba(235, 94, 40, 0.1)' }}
             >
-              <option value="all">Alle Events</option>
-              <option value="upcoming">Kommende Events</option>
-              <option value="past">Vergangene Events</option>
+              <option value="all">{t('events.allEvents')}</option>
+              <option value="upcoming">{t('events.upcoming')}</option>
+              <option value="past">{t('events.past')}</option>
             </Select>
           </HStack>
 
           {/* Location Filter */}
           <HStack spacing="8px" width={{ base: '100%', sm: 'auto' }} minWidth="0" flex={{ base: '1 1 100%', sm: '0 1 auto' }}>
             <Text fontSize={{ base: '13px', md: '14px' }} fontWeight={600} color={textColor} whiteSpace="nowrap" flexShrink={0}>
-              Ort:
+              {t('events.filterLocation')}:
             </Text>
             <Select
               value={filterLocation}
@@ -304,7 +306,7 @@ const EventsPage: React.FC = () => {
               _hover={{ borderColor: '#EB5E28' }}
               _focus={{ borderColor: '#EB5E28', boxShadow: '0 0 0 3px rgba(235, 94, 40, 0.1)' }}
             >
-              <option value="all">Alle Orte</option>
+              <option value="all">{t('events.allLocations')}</option>
               {Array.from(new Set(events.map(e => e.location))).map(location => (
                 <option key={location} value={location}>{location}</option>
               ))}
@@ -314,7 +316,7 @@ const EventsPage: React.FC = () => {
           {/* Tags Filter */}
           <HStack spacing="8px" width={{ base: '100%', sm: 'auto' }} flexWrap="wrap" minWidth="0" flex={{ base: '1 1 100%', sm: '0 1 auto' }}>
             <Text fontSize={{ base: '13px', md: '14px' }} fontWeight={600} color={textColor} whiteSpace="nowrap" flexShrink={0}>
-              Tags:
+              {t('events.filterTags')}:
             </Text>
             <HStack spacing="8px" flex="1" minWidth="0" width={{ base: '100%', sm: 'auto' }}>
               <Select
@@ -337,7 +339,7 @@ const EventsPage: React.FC = () => {
                 _hover={{ borderColor: '#EB5E28' }}
                 _focus={{ borderColor: '#EB5E28', boxShadow: '0 0 0 3px rgba(235, 94, 40, 0.1)' }}
               >
-                <option value="">Tag auswählen...</option>
+                <option value="">{t('events.selectTag')}</option>
                 {tags && tags.length > 0 && tags
                   .filter(tag => !selectedTags.includes(tag.id))
                   .map(tag => (
@@ -405,7 +407,7 @@ const EventsPage: React.FC = () => {
               flexShrink={0}
               whiteSpace="nowrap"
             >
-              Filter zurücksetzen
+              {t('common.filterReset')}
             </Button>
           )}
 
@@ -425,7 +427,7 @@ const EventsPage: React.FC = () => {
             overflow="hidden"
             textOverflow="ellipsis"
           >
-            {filteredEvents.length} von {events.length} Events
+            {t('events.count', { count: filteredEvents.length, total: events.length })}
           </Box>
         </Flex>
       </Card>
@@ -442,7 +444,7 @@ const EventsPage: React.FC = () => {
           textAlign="center"
         >
           <Text fontSize="18px" color={textColor}>
-            {searchQuery ? 'Keine Events gefunden.' : 'Keine Events vorhanden.'}
+            {searchQuery ? t('events.noEvents') : t('events.noEventsYet')}
           </Text>
         </Card>
       ) : (
@@ -512,15 +514,15 @@ const EventsPage: React.FC = () => {
                 </Heading>
                 <VStack align="stretch" spacing="6px" fontSize={{ base: '13px', md: '14px' }} color={textColor}>
                   <HStack flexWrap="wrap">
-                    <Text as="strong" whiteSpace="nowrap">Ort:</Text>
+                    <Text as="strong" whiteSpace="nowrap">{t('events.locationLabel')}</Text>
                     <Text>{event.location}</Text>
                   </HStack>
                   <HStack flexWrap="wrap">
-                    <Text as="strong" whiteSpace="nowrap">Datum:</Text>
-                    <Text>{new Date(event.date).toLocaleString('de-DE')}</Text>
+                    <Text as="strong" whiteSpace="nowrap">{t('events.dateLabel')}</Text>
+                    <Text>{new Date(event.date).toLocaleString(i18n.language === 'de' ? 'de-DE' : 'en-US')}</Text>
                   </HStack>
                   <HStack flexWrap="wrap">
-                    <Text as="strong" whiteSpace="nowrap">Teilnehmer:</Text>
+                    <Text as="strong" whiteSpace="nowrap">{t('events.participantsLabel')}</Text>
                     <Text>{event.participant_count || 0} / {event.max_participants}</Text>
                   </HStack>
                   {event.description && (
@@ -566,7 +568,7 @@ const EventsPage: React.FC = () => {
                     flex={{ base: '1', sm: '0 1 auto' }}
                     width={{ base: '100%', sm: 'auto' }}
                   >
-                    Ansehen
+                    {t('common.view')}
                   </Button>
                   <Button
                     size="sm"
@@ -579,7 +581,7 @@ const EventsPage: React.FC = () => {
                     flex={{ base: '1', sm: '0 1 auto' }}
                     width={{ base: '100%', sm: 'auto' }}
                   >
-                    Bearbeiten
+                    {t('common.edit')}
                   </Button>
                   <Button
                     size="sm"
@@ -592,7 +594,7 @@ const EventsPage: React.FC = () => {
                     flex={{ base: '1', sm: '0 1 auto' }}
                     width={{ base: '100%', sm: 'auto' }}
                   >
-                    Löschen
+                    {t('common.delete')}
                   </Button>
                 </Flex>
               </VStack>

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { getTagById } from '../adapter/api/useApiClient';
 import { Tag, Event } from '../types';
 import { ArrowLeft, Calendar, MapPin, Users, Clock, Tag as TagIcon } from 'lucide-react';
@@ -23,7 +24,7 @@ import {
 const TagDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  
+  const { t } = useTranslation();
   const [tag, setTag] = useState<Tag | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -68,7 +69,7 @@ const TagDetailPage: React.FC = () => {
       setTag(data);
       setError(null);
     } catch (err) {
-      setError('Tag nicht gefunden');
+      setError(t('tagDetail.notFound'));
       console.error(err);
     } finally {
       setLoading(false);
@@ -87,7 +88,7 @@ const TagDetailPage: React.FC = () => {
     return (
       <Box textAlign="center" padding="60px">
         <Spinner size="xl" color="#EB5E28" />
-        <Text mt="20px" fontSize="18px" color={textColor}>Lade Tag...</Text>
+        <Text mt="20px" fontSize="18px" color={textColor}>{t('tagDetail.loading')}</Text>
       </Box>
     );
   }
@@ -97,7 +98,7 @@ const TagDetailPage: React.FC = () => {
       <VStack spacing="20px">
         <Alert status="error" borderRadius="12px">
           <AlertIcon />
-          {error || 'Tag nicht gefunden'}
+          {error || t('tagDetail.notFound')}
         </Alert>
         <Button
           leftIcon={<Icon as={ArrowLeft} boxSize="18px" />}
@@ -106,7 +107,7 @@ const TagDetailPage: React.FC = () => {
           color="white"
           _hover={{ bg: '#d94d1a' }}
         >
-          Zurück zur Übersicht
+          {t('tagDetail.backToList')}
         </Button>
       </VStack>
     );
@@ -137,7 +138,7 @@ const TagDetailPage: React.FC = () => {
           borderRadius="12px"
           mb="20px"
         >
-          Zurück zu Tags
+          {t('common.backToTags')}
         </Button>
         <Flex alignItems="center" gap="24px" flexWrap="wrap">
           <Box
@@ -183,7 +184,7 @@ const TagDetailPage: React.FC = () => {
         mb="20px"
       >
         <Heading fontSize="24px" fontWeight={700} color={titleColor} mb="20px">
-          Tag-Informationen
+          {t('tagDetail.tagInfo')}
         </Heading>
         <Grid templateColumns={{ base: '1fr', md: 'repeat(2, 1fr)' }} gap="20px">
           <VStack align="flex-start" spacing="4px">
@@ -213,7 +214,7 @@ const TagDetailPage: React.FC = () => {
           </VStack>
           <VStack align="flex-start" spacing="4px">
             <Text fontSize="12px" fontWeight={600} color={textColor} opacity={0.7} textTransform="uppercase">
-              Anzahl Events
+              {t('tags.eventCount')}
             </Text>
             <Text fontSize="16px" color={titleColor} fontWeight={600}>
               {events.length}
@@ -248,7 +249,7 @@ const TagDetailPage: React.FC = () => {
         <Flex justifyContent="space-between" alignItems="center" mb="20px" flexWrap="wrap" gap="12px">
           <Heading fontSize="24px" fontWeight={700} color={titleColor} display="flex" alignItems="center" gap="12px">
             <Icon as={Calendar} boxSize="24px" />
-            Events ({events.length})
+            {t('tagDetail.eventsSection', { count: events.length })}
           </Heading>
           <HStack spacing="12px">
             <Badge
@@ -259,7 +260,7 @@ const TagDetailPage: React.FC = () => {
               fontSize="12px"
               fontWeight={600}
             >
-              {upcomingEvents.length} Kommend
+              {upcomingEvents.length} {t('tagDetail.upcoming')}
             </Badge>
             <Badge
               bg="#6B7280"
@@ -269,7 +270,7 @@ const TagDetailPage: React.FC = () => {
               fontSize="12px"
               fontWeight={600}
             >
-              {pastEvents.length} Vergangen
+              {pastEvents.length} {t('tagDetail.past')}
             </Badge>
           </HStack>
         </Flex>
@@ -278,7 +279,7 @@ const TagDetailPage: React.FC = () => {
           <Box textAlign="center" padding="60px">
             <Icon as={Calendar} boxSize="48px" opacity={0.3} mb="16px" />
             <Text fontSize="16px" color={textColor}>
-              Diesem Tag sind noch keine Events zugeordnet.
+              {t('tagDetail.noEventsForTag')}
             </Text>
           </Box>
         ) : (
@@ -289,7 +290,7 @@ const TagDetailPage: React.FC = () => {
                 <HStack spacing="8px" mb="16px">
                   <Box width="8px" height="8px" borderRadius="50%" bg="#10B981" />
                   <Heading fontSize="20px" fontWeight={700} color={titleColor}>
-                    Kommende Events ({upcomingEvents.length})
+                    {t('tags.upcomingEvents', { count: upcomingEvents.length })}
                   </Heading>
                 </HStack>
                 <Grid templateColumns={{ base: '1fr', md: 'repeat(2, 1fr)' }} gap="16px">
@@ -306,7 +307,7 @@ const TagDetailPage: React.FC = () => {
                 <HStack spacing="8px" mb="16px">
                   <Box width="8px" height="8px" borderRadius="50%" bg="#6B7280" />
                   <Heading fontSize="20px" fontWeight={700} color={titleColor}>
-                    Vergangene Events ({pastEvents.length})
+                    {t('tags.pastEvents', { count: pastEvents.length })}
                   </Heading>
                 </HStack>
                 <Grid templateColumns={{ base: '1fr', md: 'repeat(2, 1fr)' }} gap="16px">
@@ -335,8 +336,10 @@ interface EventCardProps {
 }
 
 const EventCard: React.FC<EventCardProps> = ({ event, isPast, cardBg, cardBorder, cardShadow, titleColor, textColor }) => {
+  const { t, i18n } = useTranslation();
+  const locale = i18n.language === 'de' ? 'de-DE' : 'en-US';
   const formatDate = (dateString: string): string => {
-    return new Date(dateString).toLocaleDateString('de-DE', {
+    return new Date(dateString).toLocaleDateString(locale, {
       weekday: 'short',
       year: 'numeric',
       month: 'short',
@@ -345,7 +348,7 @@ const EventCard: React.FC<EventCardProps> = ({ event, isPast, cardBg, cardBorder
   };
 
   const formatTime = (dateString: string): string => {
-    return new Date(dateString).toLocaleTimeString('de-DE', {
+    return new Date(dateString).toLocaleTimeString(locale, {
       hour: '2-digit',
       minute: '2-digit',
     });
@@ -414,7 +417,7 @@ const EventCard: React.FC<EventCardProps> = ({ event, isPast, cardBg, cardBorder
               color="white"
             >
               <Text fontSize="11px" fontWeight={600} textTransform="uppercase">
-                {new Date(event.date).toLocaleDateString('de-DE', { month: 'short' })}
+                {new Date(event.date).toLocaleDateString(locale, { month: 'short' })}
               </Text>
               <Text fontSize="20px" fontWeight={800} lineHeight="1">
                 {new Date(event.date).getDate()}
@@ -432,7 +435,7 @@ const EventCard: React.FC<EventCardProps> = ({ event, isPast, cardBg, cardBorder
               textAlign="center"
             >
               <Text fontSize="11px" fontWeight={600} textTransform="uppercase">
-                {new Date(event.date).toLocaleDateString('de-DE', { month: 'short' })}
+                {new Date(event.date).toLocaleDateString(locale, { month: 'short' })}
               </Text>
               <Text fontSize="24px" fontWeight={800} lineHeight="1">
                 {new Date(event.date).getDate()}
@@ -458,7 +461,7 @@ const EventCard: React.FC<EventCardProps> = ({ event, isPast, cardBg, cardBorder
               <Text>
                 {typeof event.participant_count === 'number' 
                   ? event.participant_count 
-                  : (event.participants?.length ?? 0)} / {event.max_participants} Teilnehmer
+                  : (event.participants?.length ?? 0)} / {event.max_participants} {t('tags.participantsLabel')}
               </Text>
             </HStack>
           </VStack>

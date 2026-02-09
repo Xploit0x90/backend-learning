@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Tag as TagType } from '../types';
 import { Tag as TagIcon, Plus, Search, Edit2, Trash2, Calendar, Eye } from 'lucide-react';
 import CreateTagModal from '../components/CreateTagModal';
@@ -28,6 +29,7 @@ import {
 const TagsPage: React.FC = () => {
   const navigate = useNavigate();
   const toast = useToast();
+  const { t } = useTranslation();
   const [tags, setTags] = useState<TagType[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -69,7 +71,7 @@ const TagsPage: React.FC = () => {
       setTags(data);
       setError(null);
     } catch (err) {
-      setError('Fehler beim Laden der Tags');
+      setError(t('tags.loadError'));
       console.error(err);
     } finally {
       setLoading(false);
@@ -77,21 +79,21 @@ const TagsPage: React.FC = () => {
   };
 
   const handleDeleteTag = async (id: number, name: string) => {
-    if (window.confirm(`Tag "${name}" wirklich löschen?`)) {
+    if (window.confirm(t('tags.deleteConfirm', { name }))) {
       try {
         await deleteTag(id);
         loadTags();
         toast({
-          title: 'Tag gelöscht',
-          description: `"${name}" wurde erfolgreich gelöscht`,
+          title: t('tags.deleted'),
+          description: t('tags.deletedDescription', { name }),
           status: 'success',
           duration: 3000,
           isClosable: true,
         });
       } catch (err) {
         toast({
-          title: 'Fehler',
-          description: 'Fehler beim Löschen des Tags',
+          title: t('common.error'),
+          description: t('tags.deleteError'),
           status: 'error',
           duration: 3000,
           isClosable: true,
@@ -104,7 +106,7 @@ const TagsPage: React.FC = () => {
   if (loading) {
     return (
       <Box textAlign="center" padding="60px" fontSize="18px" color={textColor}>
-        Lade Tags...
+        {t('tags.loading')}
       </Box>
     );
   }
@@ -155,10 +157,10 @@ const TagsPage: React.FC = () => {
               flexWrap="wrap"
             >
               <Icon as={TagIcon} boxSize={{ base: '24px', md: '28px', lg: '32px' }} />
-              Tags
+              {t('tags.title')}
             </Heading>
             <Text fontSize={{ base: '14px', md: '15px' }} color={textColor}>
-              Kategorisiere deine Events mit Tags
+              {t('tags.subtitle')}
             </Text>
           </VStack>
           <Button
@@ -174,7 +176,7 @@ const TagsPage: React.FC = () => {
             onClick={() => setIsModalOpen(true)}
             width={{ base: '100%', md: 'auto' }}
           >
-            Neuer Tag
+            {t('tags.newTag')}
           </Button>
         </Flex>
       </Card>
@@ -216,7 +218,7 @@ const TagsPage: React.FC = () => {
               width="100%"
               textAlign="center"
             >
-              Gesamt Tags
+              {t('tags.totalTags')}
             </Text>
           </VStack>
           <VStack spacing="8px" width="100%" minWidth="0" overflow="hidden">
@@ -240,7 +242,7 @@ const TagsPage: React.FC = () => {
               width="100%"
               textAlign="center"
             >
-              Verwendet
+              {t('tags.used')}
             </Text>
           </VStack>
           <VStack spacing="8px" width="100%" minWidth="0" overflow="hidden">
@@ -264,7 +266,7 @@ const TagsPage: React.FC = () => {
               width="100%"
               textAlign="center"
             >
-              Ungenutzt
+              {t('tags.unused')}
             </Text>
           </VStack>
         </Grid>
@@ -277,7 +279,7 @@ const TagsPage: React.FC = () => {
             <Icon as={Search} boxSize="18px" color={isDark ? '#b6b3ae' : '#403D39'} opacity={0.5} />
           </InputLeftElement>
           <Input
-            placeholder="Tags durchsuchen..."
+            placeholder={t('tags.searchPlaceholder')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             bg={isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(204, 197, 185, 0.15)'}
@@ -313,10 +315,10 @@ const TagsPage: React.FC = () => {
             <Icon as={TagIcon} boxSize="64px" opacity={0.3} />
             <VStack spacing="8px">
               <Heading fontSize="24px" color={titleColor}>
-                Keine Tags gefunden
+                {t('tags.noTags')}
               </Heading>
               <Text fontSize="16px" color={textColor}>
-                {searchQuery ? 'Versuche einen anderen Suchbegriff' : 'Erstelle deinen ersten Tag'}
+                {searchQuery ? t('common.tryDifferentSearch') : t('tags.createFirstTag')}
               </Text>
             </VStack>
             <Button
@@ -330,7 +332,7 @@ const TagsPage: React.FC = () => {
               fontSize="15px"
               onClick={() => setIsModalOpen(true)}
             >
-              Ersten Tag erstellen
+              {t('tags.createTag')}
             </Button>
           </VStack>
         </Card>
@@ -376,7 +378,7 @@ const TagsPage: React.FC = () => {
                     <HStack spacing="8px" fontSize={{ base: '12px', md: '13px' }} color={textColor} flexWrap="wrap">
                       <Icon as={Calendar} boxSize="16px" flexShrink={0} />
                       <Text>
-                        {tag.event_count || 0} Event{tag.event_count !== 1 ? 's' : ''}
+                        {t('participants.eventCount', { count: tag.event_count || 0 })}
                       </Text>
                     </HStack>
                   </VStack>
@@ -411,7 +413,7 @@ const TagsPage: React.FC = () => {
                     flex={{ base: '1', sm: '0 1 auto' }}
                     width={{ base: '100%', sm: 'auto' }}
                   >
-                    Ansehen
+                    {t('common.view')}
                   </Button>
                   <Button
                     size="sm"
@@ -424,7 +426,7 @@ const TagsPage: React.FC = () => {
                     flex={{ base: '1', sm: '0 1 auto' }}
                     width={{ base: '100%', sm: 'auto' }}
                   >
-                    Bearbeiten
+                    {t('common.edit')}
                   </Button>
                   <Button
                     size="sm"
@@ -437,7 +439,7 @@ const TagsPage: React.FC = () => {
                     flex={{ base: '1', sm: '0 1 auto' }}
                     width={{ base: '100%', sm: 'auto' }}
                   >
-                    Löschen
+                    {t('common.delete')}
                   </Button>
                 </Flex>
               </VStack>
@@ -462,7 +464,7 @@ const TagsPage: React.FC = () => {
             color={titleColor} 
             mb="20px"
           >
-            Meist verwendete Tags
+            {t('tags.popularTags')}
           </Heading>
           <Flex gap={{ base: '8px', md: '12px' }} flexWrap="wrap">
             {tags

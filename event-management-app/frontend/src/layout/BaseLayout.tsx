@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Calendar, Home, Users, Tag, Sun, Moon } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { Calendar, Home, Users, Tag, Sun, Moon, Languages } from 'lucide-react';
 import {
   Box,
   Flex,
@@ -16,6 +17,7 @@ interface BaseLayoutProps {
 
 export const BaseLayout: React.FC<BaseLayoutProps> = ({ children }) => {
   const location = useLocation();
+  const { t, i18n } = useTranslation();
   const [darkMode, setDarkMode] = useState(() => {
     const savedMode = localStorage.getItem("darkMode");
     return savedMode === "true";
@@ -27,6 +29,12 @@ export const BaseLayout: React.FC<BaseLayoutProps> = ({ children }) => {
       localStorage.setItem("darkMode", String(newMode));
       return newMode;
     });
+  };
+
+  const toggleLanguage = () => {
+    const nextLang = i18n.language === 'de' ? 'en' : 'de';
+    i18n.changeLanguage(nextLang);
+    localStorage.setItem('language', nextLang);
   };
 
   useEffect(() => {
@@ -84,7 +92,7 @@ export const BaseLayout: React.FC<BaseLayoutProps> = ({ children }) => {
             textOverflow="ellipsis"
             width="100%"
           >
-            Event Manager
+            {t('nav.appTitle')}
           </Heading>
         </Box>
         
@@ -98,6 +106,34 @@ export const BaseLayout: React.FC<BaseLayoutProps> = ({ children }) => {
         </Box>
 
         <Flex alignItems="center" gap={{ base: '6px', sm: '8px', md: '12px', lg: '15px' }} flexShrink={0} flexGrow={0} flexBasis="auto">
+          {/* Language Toggle */}
+          <Button
+            className="icon-btn language-toggle"
+            onClick={toggleLanguage}
+            width={{ base: '32px', sm: '36px', md: '44px', lg: '48px' }}
+            height={{ base: '32px', sm: '36px', md: '44px', lg: '48px' }}
+            bg="rgba(79, 70, 229, 0.1)"
+            borderRadius={{ base: '10px', md: '12px' }}
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+            color="#403D39"
+            padding="0"
+            minWidth="auto"
+            title={i18n.language === 'de' ? t('nav.switchToEnglish') : t('nav.switchToGerman')}
+            _hover={{
+              bg: '#4F46E5',
+              color: 'white',
+              transform: 'translateY(-2px)',
+              boxShadow: '0 8px 20px rgba(79, 70, 229, 0.3)',
+            }}
+            _dark={{
+              bg: 'rgba(79, 70, 229, 0.15)',
+              color: '#f6f4f0',
+            }}
+          >
+            <Languages size={20} />
+          </Button>
           {/* Dark Mode Toggle */}
           <Button
             className="icon-btn theme-toggle"
@@ -209,7 +245,7 @@ export const BaseLayout: React.FC<BaseLayoutProps> = ({ children }) => {
             }}
           >
             <Home size={20} />
-            <span>Home</span>
+            <span>{t('nav.home')}</span>
           </Box>
 
           <Box
@@ -270,7 +306,7 @@ export const BaseLayout: React.FC<BaseLayoutProps> = ({ children }) => {
             }}
           >
             <Calendar size={20} />
-            <span>Events</span>
+            <span>{t('nav.events')}</span>
           </Box>
 
           <Box
@@ -331,7 +367,7 @@ export const BaseLayout: React.FC<BaseLayoutProps> = ({ children }) => {
             }}
           >
             <Users size={20} />
-            <span>Teilnehmer</span>
+            <span>{t('nav.participants')}</span>
           </Box>
 
           <Box
@@ -392,7 +428,7 @@ export const BaseLayout: React.FC<BaseLayoutProps> = ({ children }) => {
             }}
           >
             <Tag size={20} />
-            <span>Tags</span>
+            <span>{t('nav.tags')}</span>
           </Box>
         </Flex>
       </chakra.aside>

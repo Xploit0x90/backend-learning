@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { User, Mail, Phone, GraduationCap, FileText } from 'lucide-react';
 import { createParticipant } from '../adapter/api/useApiClient';
 import {
@@ -31,6 +32,7 @@ interface CreateParticipantModalProps {
 }
 
 const CreateParticipantModal: React.FC<CreateParticipantModalProps> = ({ isOpen, onClose, onSuccess }) => {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     first_name: '',
     last_name: '',
@@ -67,15 +69,15 @@ const CreateParticipantModal: React.FC<CreateParticipantModalProps> = ({ isOpen,
     const errors: Record<string, string> = {};
     
     if (!formData.first_name.trim()) {
-      errors.first_name = 'Der Vorname ist erforderlich';
+      errors.first_name = t('createParticipant.firstNameRequired');
     }
     if (!formData.last_name.trim()) {
-      errors.last_name = 'Der Nachname ist erforderlich';
+      errors.last_name = t('createParticipant.lastNameRequired');
     }
     if (!formData.email.trim()) {
-      errors.email = 'Die E-Mail-Adresse ist erforderlich';
+      errors.email = t('createParticipant.emailRequired');
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      errors.email = 'Die E-Mail-Adresse hat ein ungültiges Format';
+      errors.email = t('createParticipant.emailInvalid');
     }
     
     setFieldErrors(errors);
@@ -129,14 +131,14 @@ const CreateParticipantModal: React.FC<CreateParticipantModalProps> = ({ isOpen,
           backendErrors[frontendField] = error.message;
         });
         setFieldErrors(backendErrors);
-        setError('Bitte korrigieren Sie die markierten Felder');
+        setError(t('createParticipant.fixFields'));
       } else if (err.response?.status === 409) {
-        setError('Ein Teilnehmer mit dieser E-Mail existiert bereits');
-        setFieldErrors({ email: 'Diese E-Mail-Adresse wird bereits verwendet' });
+        setError(t('createParticipant.emailExists'));
+        setFieldErrors({ email: t('createParticipant.emailInUse') });
       } else {
         const errorMessage = err?.response?.data?.message || 
                             err?.response?.data?.error || 
-                            'Fehler beim Erstellen des Teilnehmers';
+                            t('createParticipant.createError');
         setError(errorMessage);
       }
       console.error(err);
@@ -156,7 +158,7 @@ const CreateParticipantModal: React.FC<CreateParticipantModalProps> = ({ isOpen,
         maxH="90vh"
       >
         <ModalHeader fontSize="24px" fontWeight={700}>
-          Neuen Teilnehmer hinzufügen
+          {t('createParticipant.title')}
         </ModalHeader>
         <ModalCloseButton />
 
@@ -174,14 +176,14 @@ const CreateParticipantModal: React.FC<CreateParticipantModalProps> = ({ isOpen,
                 <FormControl isRequired isInvalid={!!fieldErrors.first_name}>
                   <FormLabel display="flex" alignItems="center" gap="8px">
                     <Icon as={User} boxSize="18px" />
-                    Vorname
+                    {t('createParticipant.firstName')}
                   </FormLabel>
                   <Input
                     type="text"
                     name="first_name"
                     value={formData.first_name}
                     onChange={handleChange}
-                    placeholder="z.B. Anna"
+                    placeholder={t('createParticipant.firstNamePlaceholder')}
                     borderRadius="12px"
                     bg={inputBg}
                     color={inputColor}
@@ -196,14 +198,14 @@ const CreateParticipantModal: React.FC<CreateParticipantModalProps> = ({ isOpen,
                 <FormControl isRequired isInvalid={!!fieldErrors.last_name}>
                   <FormLabel display="flex" alignItems="center" gap="8px">
                     <Icon as={User} boxSize="18px" />
-                    Nachname
+                    {t('createParticipant.lastName')}
                   </FormLabel>
                   <Input
                     type="text"
                     name="last_name"
                     value={formData.last_name}
                     onChange={handleChange}
-                    placeholder="z.B. Schmidt"
+                    placeholder={t('createParticipant.lastNamePlaceholder')}
                     borderRadius="12px"
                     bg={inputBg}
                     color={inputColor}
@@ -219,7 +221,7 @@ const CreateParticipantModal: React.FC<CreateParticipantModalProps> = ({ isOpen,
               <FormControl isRequired isInvalid={!!fieldErrors.email}>
                 <FormLabel display="flex" alignItems="center" gap="8px">
                   <Icon as={Mail} boxSize="18px" />
-                  E-Mail
+                  {t('createParticipant.email')}
                 </FormLabel>
                 <Input
                   type="email"
@@ -241,7 +243,7 @@ const CreateParticipantModal: React.FC<CreateParticipantModalProps> = ({ isOpen,
               <FormControl>
                 <FormLabel display="flex" alignItems="center" gap="8px">
                   <Icon as={Phone} boxSize="18px" />
-                  Telefon (optional)
+                  {t('createParticipant.phone')}
                 </FormLabel>
                 <Input
                   type="tel"
@@ -262,14 +264,14 @@ const CreateParticipantModal: React.FC<CreateParticipantModalProps> = ({ isOpen,
               <FormControl>
                 <FormLabel display="flex" alignItems="center" gap="8px">
                   <Icon as={GraduationCap} boxSize="18px" />
-                  Studiengang (optional)
+                  {t('createParticipant.studyProgram')}
                 </FormLabel>
                 <Input
                   type="text"
                   name="study_program"
                   value={formData.study_program}
                   onChange={handleChange}
-                  placeholder="z.B. Informatik, 5. Semester"
+                  placeholder={t('createParticipant.studyProgramPlaceholder')}
                   borderRadius="12px"
                   bg={inputBg}
                   color={inputColor}
@@ -283,13 +285,13 @@ const CreateParticipantModal: React.FC<CreateParticipantModalProps> = ({ isOpen,
               <FormControl>
                 <FormLabel display="flex" alignItems="center" gap="8px">
                   <Icon as={FileText} boxSize="18px" />
-                  Notizen (optional)
+                  {t('createParticipant.notes')}
                 </FormLabel>
                 <Textarea
                   name="notes"
                   value={formData.notes}
                   onChange={handleChange}
-                  placeholder="Zusätzliche Informationen..."
+                  placeholder={t('createParticipant.notesPlaceholder')}
                   rows={3}
                   borderRadius="12px"
                   bg={inputBg}
@@ -313,7 +315,7 @@ const CreateParticipantModal: React.FC<CreateParticipantModalProps> = ({ isOpen,
                 _hover={{ bg: 'rgba(107, 114, 128, 0.2)' }}
                 borderRadius="12px"
               >
-                Abbrechen
+                {t('common.cancel')}
               </Button>
               <Button
                 type="submit"
@@ -322,9 +324,9 @@ const CreateParticipantModal: React.FC<CreateParticipantModalProps> = ({ isOpen,
                 _hover={{ bg: '#d94d1a' }}
                 borderRadius="12px"
                 isLoading={loading}
-                loadingText="Erstelle..."
+                loadingText={t('common.creating')}
               >
-                Teilnehmer hinzufügen
+                {t('createParticipant.createButton')}
               </Button>
             </HStack>
           </ModalFooter>

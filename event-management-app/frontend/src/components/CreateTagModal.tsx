@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Tag as TagIcon, Palette } from 'lucide-react';
 import { createTag } from '../adapter/api/useApiClient';
 import {
@@ -30,6 +31,7 @@ interface CreateTagModalProps {
 }
 
 const CreateTagModal: React.FC<CreateTagModalProps> = ({ isOpen, onClose, onSuccess }) => {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     name: '',
     color: '#EB5E28',
@@ -75,11 +77,11 @@ const CreateTagModal: React.FC<CreateTagModalProps> = ({ isOpen, onClose, onSucc
       onClose();
     } catch (err: any) {
       if (err.response?.status === 409) {
-        setError('Ein Tag mit diesem Namen existiert bereits');
+        setError(t('createTag.nameExists'));
       } else if (err.response?.status === 400) {
-        setError('Farbe muss im HEX-Format sein (z.B. #FF5733)');
+        setError(t('createTag.colorHex'));
       } else {
-        setError('Fehler beim Erstellen des Tags');
+        setError(t('createTag.createError'));
       }
       console.error(err);
     } finally {
@@ -97,7 +99,7 @@ const CreateTagModal: React.FC<CreateTagModalProps> = ({ isOpen, onClose, onSucc
         borderRadius="20px"
       >
         <ModalHeader fontSize="24px" fontWeight={700}>
-          Neuen Tag erstellen
+          {t('createTag.title')}
         </ModalHeader>
         <ModalCloseButton />
 
@@ -114,14 +116,14 @@ const CreateTagModal: React.FC<CreateTagModalProps> = ({ isOpen, onClose, onSucc
               <FormControl isRequired>
                 <FormLabel display="flex" alignItems="center" gap="8px">
                   <Icon as={TagIcon} boxSize="18px" />
-                  Tag-Name
+                  {t('createTag.tagName')}
                 </FormLabel>
                 <Input
                   type="text"
                   name="name"
                   value={formData.name}
                   onChange={handleChange}
-                  placeholder="z.B. Musik, Sport, Workshop..."
+                  placeholder={t('createTag.tagNamePlaceholder')}
                   borderRadius="12px"
                   bg={inputBg}
                   color={inputColor}
@@ -135,7 +137,7 @@ const CreateTagModal: React.FC<CreateTagModalProps> = ({ isOpen, onClose, onSucc
               <FormControl isRequired>
                 <FormLabel display="flex" alignItems="center" gap="8px">
                   <Icon as={Palette} boxSize="18px" />
-                  Farbe
+                  {t('common.color')}
                 </FormLabel>
                 <HStack spacing="12px">
                   <Input
@@ -167,7 +169,7 @@ const CreateTagModal: React.FC<CreateTagModalProps> = ({ isOpen, onClose, onSucc
               </FormControl>
 
               <FormControl>
-                <FormLabel>Vordefinierte Farben</FormLabel>
+                <FormLabel>{t('createTag.presetColors')}</FormLabel>
                 <HStack spacing="8px" flexWrap="wrap">
                   {presetColors.map((color) => (
                     <Button
@@ -188,7 +190,7 @@ const CreateTagModal: React.FC<CreateTagModalProps> = ({ isOpen, onClose, onSucc
               </FormControl>
 
               <FormControl>
-                <FormLabel>Vorschau</FormLabel>
+                <FormLabel>{t('createTag.preview')}</FormLabel>
                 <HStack spacing="16px">
                   <Badge
                     bg={formData.color}
@@ -198,7 +200,7 @@ const CreateTagModal: React.FC<CreateTagModalProps> = ({ isOpen, onClose, onSucc
                     fontSize="14px"
                     fontWeight={600}
                   >
-                    {formData.name || 'Tag Name'}
+                    {formData.name || t('createTag.tagNamePreview')}
                   </Badge>
                   <Box
                     width="40px"
@@ -222,7 +224,7 @@ const CreateTagModal: React.FC<CreateTagModalProps> = ({ isOpen, onClose, onSucc
                 _hover={{ bg: 'rgba(107, 114, 128, 0.2)' }}
                 borderRadius="12px"
               >
-                Abbrechen
+                {t('common.cancel')}
               </Button>
               <Button
                 type="submit"
@@ -231,9 +233,9 @@ const CreateTagModal: React.FC<CreateTagModalProps> = ({ isOpen, onClose, onSucc
                 _hover={{ bg: '#d94d1a' }}
                 borderRadius="12px"
                 isLoading={loading}
-                loadingText="Erstelle..."
+                loadingText={t('common.creating')}
               >
-                Tag erstellen
+                {t('createTag.createButton')}
               </Button>
             </HStack>
           </ModalFooter>

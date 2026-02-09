@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Calendar, MapPin, Users, Image, FileText } from 'lucide-react';
 import { createEvent } from '../adapter/api/useApiClient';
 import {
@@ -31,6 +32,7 @@ interface CreateEventModalProps {
 }
 
 const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onClose, onSuccess }) => {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -68,26 +70,26 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onClose, on
     const errors: Record<string, string> = {};
     
     if (!formData.title.trim()) {
-      errors.title = 'Der Event-Titel ist erforderlich';
+      errors.title = t('createEvent.eventTitleRequired');
     }
     if (!formData.location.trim()) {
-      errors.location = 'Der Ort ist erforderlich';
+      errors.location = t('createEvent.locationRequired');
     }
     if (!formData.date) {
-      errors.date = 'Das Datum ist erforderlich';
+      errors.date = t('createEvent.dateRequired');
     }
     if (!formData.time) {
-      errors.time = 'Die Uhrzeit ist erforderlich';
+      errors.time = t('createEvent.timeRequired');
     }
     const maxParticipants = Number(formData.max_participants);
     if (isNaN(maxParticipants) || maxParticipants < 1) {
-      errors.max_participants = 'Die maximale Teilnehmeranzahl muss eine positive Zahl sein';
+      errors.max_participants = t('createEvent.maxParticipantsError');
     }
     if (formData.image_url && formData.image_url.trim()) {
       try {
         new URL(formData.image_url);
       } catch {
-        errors.image_url = 'Die Bild-URL muss eine gültige URL sein (z.B. https://example.com/image.jpg)';
+        errors.image_url = t('createEvent.imageUrlError');
       }
     }
     
@@ -145,11 +147,11 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onClose, on
           backendErrors[frontendField] = error.message;
         });
         setFieldErrors(backendErrors);
-        setError('Bitte korrigieren Sie die markierten Felder');
+        setError(t('createEvent.fixFields'));
       } else {
         const errorMessage = err?.response?.data?.message || 
                             err?.response?.data?.error || 
-                            'Fehler beim Erstellen des Events';
+                            t('createEvent.createError');
         setError(errorMessage);
       }
       console.error('Create event error:', err?.response?.data || err);
@@ -169,7 +171,7 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onClose, on
         maxH="90vh"
       >
         <ModalHeader fontSize="24px" fontWeight={700}>
-          Neues Event erstellen
+          {t('createEvent.title')}
         </ModalHeader>
         <ModalCloseButton />
 
@@ -186,14 +188,14 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onClose, on
               <FormControl isRequired isInvalid={!!fieldErrors.title}>
                 <FormLabel display="flex" alignItems="center" gap="8px">
                   <Icon as={FileText} boxSize="18px" />
-                  Event-Titel
+                  {t('createEvent.eventTitle')}
                 </FormLabel>
                 <Input
                   type="text"
                   name="title"
                   value={formData.title}
                   onChange={handleChange}
-                  placeholder="z.B. Sommerfest 2026"
+                  placeholder={t('createEvent.eventTitlePlaceholder')}
                   borderRadius="12px"
                   bg={inputBg}
                   color={inputColor}
@@ -208,13 +210,13 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onClose, on
               <FormControl>
                 <FormLabel display="flex" alignItems="center" gap="8px">
                   <Icon as={FileText} boxSize="18px" />
-                  Beschreibung
+                  {t('createEvent.description')}
                 </FormLabel>
                 <Textarea
                   name="description"
                   value={formData.description}
                   onChange={handleChange}
-                  placeholder="Beschreibe dein Event..."
+                  placeholder={t('createEvent.descriptionPlaceholder')}
                   rows={4}
                   borderRadius="12px"
                   bg={inputBg}
@@ -229,14 +231,14 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onClose, on
               <FormControl isRequired isInvalid={!!fieldErrors.location}>
                 <FormLabel display="flex" alignItems="center" gap="8px">
                   <Icon as={MapPin} boxSize="18px" />
-                  Ort
+                  {t('common.location')}
                 </FormLabel>
                 <Input
                   type="text"
                   name="location"
                   value={formData.location}
                   onChange={handleChange}
-                  placeholder="z.B. Campus Garten"
+                  placeholder={t('createEvent.locationPlaceholder')}
                   borderRadius="12px"
                   bg={inputBg}
                   color={inputColor}
@@ -252,7 +254,7 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onClose, on
                 <FormControl isRequired isInvalid={!!fieldErrors.date}>
                   <FormLabel display="flex" alignItems="center" gap="8px">
                     <Icon as={Calendar} boxSize="18px" />
-                    Datum
+                    {t('common.date')}
                   </FormLabel>
                   <Input
                     type="date"
@@ -272,7 +274,7 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onClose, on
                 <FormControl isRequired isInvalid={!!fieldErrors.time}>
                   <FormLabel display="flex" alignItems="center" gap="8px">
                     <Icon as={Calendar} boxSize="18px" />
-                    Uhrzeit
+                    {t('createEvent.timeLabel')}
                   </FormLabel>
                   <Input
                     type="time"
@@ -293,7 +295,7 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onClose, on
               <FormControl isInvalid={!!fieldErrors.max_participants}>
                 <FormLabel display="flex" alignItems="center" gap="8px">
                   <Icon as={Users} boxSize="18px" />
-                  Max. Teilnehmer
+                  {t('createEvent.maxParticipants')}
                 </FormLabel>
                 <Input
                   type="number"
@@ -316,7 +318,7 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onClose, on
               <FormControl isInvalid={!!fieldErrors.image_url}>
                 <FormLabel display="flex" alignItems="center" gap="8px">
                   <Icon as={Image} boxSize="18px" />
-                  Bild-URL (optional)
+                  {t('createEvent.imageUrl')}
                 </FormLabel>
                 <Input
                   type="url"
@@ -347,7 +349,7 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onClose, on
                 _hover={{ bg: 'rgba(107, 114, 128, 0.2)' }}
                 borderRadius="12px"
               >
-                Abbrechen
+                {t('common.cancel')}
               </Button>
               <Button
                 type="submit"
@@ -356,9 +358,9 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onClose, on
                 _hover={{ bg: '#d94d1a' }}
                 borderRadius="12px"
                 isLoading={loading}
-                loadingText="Erstelle..."
+                loadingText={t('common.creating')}
               >
-                Event erstellen
+                {t('createEvent.createButton')}
               </Button>
             </HStack>
           </ModalFooter>
