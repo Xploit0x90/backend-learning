@@ -1,0 +1,260 @@
+stages:
+  - validate
+  - quality
+  - test
+  - build
+  - deploy
+
+variables:
+  NODE_VERSION: "18"
+
+# Cache dependencies between jobs for both frontend and backend
+cache:
+  key: ${CI_COMMIT_REF_SLUG}
+  paths:
+    - frontend/node_modules/
+    - backend/node_modules/
+    - .npm/
+
+# Job templates
+.backend_template: &backend_template
+  image: node:${NODE_VERSION}-alpine
+  before_script:
+    - cd backend
+    - echo "Installing backend dependencies..."
+    - npm ci
+
+.frontend_template: &frontend_template
+  image: node:${NODE_VERSION}-alpine
+  before_script:
+    - cd frontend
+    - echo "Installing frontend dependencies..."
+    - npm ci
+
+# Validate stage - Check if both frontend and backend can be built
+validate:frontend:
+  stage: validate
+  <<: *frontend_template
+  variables:
+    VITE_API_URL: ${VITE_API_URL:-http://localhost:5000/api}
+  script:
+    - echo "Validating frontend TypeScript configuration..."
+    - npx tsc --noEmit
+    - echo "Validating frontend build..."
+    - npm run build
+    - echo "Frontend validation completed successfully!"
+  artifacts:
+    paths:
+      - frontend/dist/
+    expire_in: 1 hour
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+validate:backend:
+  stage: validate
+  <<: *backend_template
+  script:
+    - echo "Validating backend TypeScript configuration..."
+    - npx tsc --noEmit
+    - echo "Validating backend build..."
+    - npm run build
+    - echo "Backend validation completed successfully!"
+  artifacts:
+    paths:
+      - backend/dist/
+    expire_in: 1 hour
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+# Test stage - Backend tests (Jest)
+test:backend:
+  stage: test
+  <<: *backend_template
+  services:
+    - postgres:15-alpine
+  variables:
+    POSTGRES_DB: eventmanagement
+    POSTGRES_USER: eventuser
+    POSTGRES_PASSWORD: eventpass123
+    DB_HOST: postgres
+    DB_PORT: 5432
+    NODE_ENV: test
+  script:
+    - echo "Running backend tests..."
+    - npm test
+    - echo "Backend tests completed successfully!"
+  coverage: '/All files[^|]*\|[^|]*\s+([\d\.]+)/'
+  artifacts:
+    reports:
+      junit:
+        - backend/junit.xml
+    paths:
+      - backend/coverage/
+    expire_in: 1 week
+    when: always
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+# Test stage - Frontend unit tests (Vitest)
+test:frontend:
+  stage: test
+  <<: *frontend_template
+  script:
+    - echo "Running frontend tests..."
+    - npm test -- --run --reporter=verbose
+    - echo "Frontend tests completed successfully!"
+  coverage: '/All files[^|]*\|[^|]*\s+([\d\.]+)/'
+  artifacts:
+    reports:
+      junit:
+        - frontend/junit.xml
+    paths:
+      - frontend/coverage/
+    expire_in: 1 week
+    when: always
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+# Code quality stage - Backend (ESLint, Prettier, TypeScript)
+quality:backend:
+  stage: quality
+  <<: *backend_template
+  script:
+    - echo "Running backend code quality checks..."
+    - npm run lint || echo "Linting completed with warnings"
+    - npx prettier --check "src/**/*.{ts,json,md}" || echo "Prettier check completed with warnings"
+    - npx tsc --noEmit
+    - echo "Backend code quality checks completed!"
+  allow_failure: true
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+# Code quality stage - Frontend (ESLint, Prettier, TypeScript)
+quality:frontend:
+  stage: quality
+  <<: *frontend_template
+  script:
+    - echo "Running frontend code quality checks..."
+    - npm run lint || echo "Linting completed with warnings"
+    - npx prettier --check "src/**/*.{js,jsx,ts,tsx,json,css,md}" || echo "Prettier check completed with warnings"
+    - npx tsc --noEmit
+    - echo "Frontend code quality checks completed!"
+  allow_failure: true
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+# Security scan - Backend
+security_scan:backend:
+  stage: quality
+  <<: *backend_template
+  script:
+    - echo "Running backend security audit..."
+    - npm audit --audit-level=high || echo "Security audit completed with warnings"
+    - echo "Backend security scan completed!"
+  allow_failure: true
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+# Security scan - Frontend
+security_scan:frontend:
+  stage: quality
+  <<: *frontend_template
+  script:
+    - echo "Running frontend security audit..."
+    - npm audit --audit-level=high || echo "Security audit completed with warnings"
+    - echo "Frontend security scan completed!"
+  allow_failure: true
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+# Build stage - Build Backend Docker image with Kaniko
+build:backend:
+  stage: build
+  image:
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: [""]
+  variables:
+    DOCKERFILE_LOCATION: "$CI_PROJECT_DIR/backend/Dockerfile"
+    CONTAINER_NAME: "event-backend"
+    TAG_NAME: "$CI_COMMIT_SHA"
+  before_script:
+    - echo "Checking registry configuration..."
+    - |
+      if [ -z "$CI_REGISTRY" ] || [ -z "$CI_REGISTRY_USER" ] || [ -z "$CI_REGISTRY_PASSWORD" ]; then
+        echo "Warning: Registry variables not configured, using local build only"
+        export USE_REGISTRY=false
+      else
+        echo "Registry configuration found"
+        export USE_REGISTRY=true
+      fi
+  script:
+    - mkdir -p /kaniko/.docker
+    - |
+      if [ "$USE_REGISTRY" = "true" ]; then
+        echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
+        /kaniko/executor \
+          --context $CI_PROJECT_DIR/backend \
+          --dockerfile $DOCKERFILE_LOCATION \
+          --destination $CI_REGISTRY_IMAGE/backend:$CI_COMMIT_SHA \
+          --destination $CI_REGISTRY_IMAGE/backend:latest
+      else
+        echo "Building backend without registry push..."
+        /kaniko/executor \
+          --context $CI_PROJECT_DIR/backend \
+          --dockerfile $DOCKERFILE_LOCATION \
+          --no-push
+      fi
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+# Build stage - Build Frontend Docker image with Kaniko
+build:frontend:
+  stage: build
+  image:
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: [""]
+  variables:
+    DOCKERFILE_LOCATION: "$CI_PROJECT_DIR/frontend/Dockerfile"
+    CONTAINER_NAME: "event-frontend"
+    TAG_NAME: "$CI_COMMIT_SHA"
+  before_script:
+    - echo "Checking registry configuration..."
+    - |
+      if [ -z "$CI_REGISTRY" ] || [ -z "$CI_REGISTRY_USER" ] || [ -z "$CI_REGISTRY_PASSWORD" ]; then
+        echo "Warning: Registry variables not configured, using local build only"
+        export USE_REGISTRY=false
+      else
+        echo "Registry configuration found"
+        export USE_REGISTRY=true
+      fi
+  variables:
+    VITE_API_URL: ${VITE_API_URL:-http://localhost:5000/api}
+  script:
+    - mkdir -p /kaniko/.docker
+    - |
+      if [ "$USE_REGISTRY" = "true" ]; then
+        echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
+        /kaniko/executor \
+          --context $CI_PROJECT_DIR/frontend \
+          --dockerfile $DOCKERFILE_LOCATION \
+          --build-arg VITE_API_URL=${VITE_API_URL:-http://localhost:5000/api} \
+          --destination $CI_REGISTRY_IMAGE/frontend:$CI_COMMIT_SHA \
+          --destination $CI_REGISTRY_IMAGE/frontend:latest
+      else
+        echo "Building frontend without registry push..."
+        /kaniko/executor \
+          --context $CI_PROJECT_DIR/frontend \
+          --dockerfile $DOCKERFILE_LOCATION \
+          --build-arg VITE_API_URL=${VITE_API_URL:-http://localhost:5000/api} \
+          --no-push
+      fi
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH

@@ -1,0 +1,11 @@
+/* Minimal CSS - Most styling is now handled by Chakra UI */
+.App {
+  min-height: 100vh;
+  position: relative;
+}
+
+/* Dark mode body background - Chakra UI handles component styling */
+body.dark {
+  background: linear-gradient(145deg, #1f1f1d, #2a2a28);
+  color: #f4f1ec;
+}
