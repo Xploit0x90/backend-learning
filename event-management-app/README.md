@@ -111,17 +111,43 @@ Postman collection: `backend/docs/Event-Management-API.postman_collection.json`
 
 ## Deploy on Vercel (frontend only)
 
-1. **Deploy the backend elsewhere** (e.g. [Railway](https://railway.app), [Render](https://render.com), [Fly.io](https://fly.io)) so it’s always running. Set `DATABASE_URL` and optional `WEATHER_API_KEY` there.
+**Important:** Vercel only serves the **frontend** (HTML/JS/CSS). It does **not** run your Express backend or PostgreSQL. So “database is not running on deployment” is expected if you only deployed to Vercel — the database and backend must run somewhere else.
 
-2. **Deploy this project to Vercel** (from the `event-management-app` folder or repo):
-   - Connect the repo; Vercel will use the existing `vercel.json` (builds `frontend`, outputs `frontend/dist`).
-   - In **Project → Settings → Environment Variables** add:
-     - `VITE_API_URL` = your backend API base URL, e.g. `https://your-app.railway.app/api`
-   - Redeploy so the frontend is built with that URL.
+### Full production setup (no “database not running”)
 
-3. **CORS:** On the backend host, set env `CORS_ORIGIN=https://your-project.vercel.app` (or comma-separated list). If unset, all origins are allowed.
+You need three things: **database**, **backend**, **frontend**.
 
-**Note:** Vercel hosts the React app only. It does not run the Express backend; that must be deployed on a Node-friendly platform.
+**1. Database (PostgreSQL in the cloud)**  
+Create a free Postgres instance and get a connection string:
+
+- **[Neon](https://neon.tech)** (recommended, free tier): Sign up → New project → copy the connection string (e.g. `postgresql://user:pass@ep-xxx.region.aws.neon.tech/neondb?sslmode=require`).
+
+**2. Backend (Node/Express)**  
+Deploy the `backend` folder to a Node host and point it at that database:
+
+- **[Railway](https://railway.app)**: New project → Deploy from GitHub (choose repo, set **Root Directory** to `event-management-app/backend`). Add variables:
+  - `DATABASE_URL` = your Neon (or other) connection string
+  - `PORT` = often set automatically
+  - `CORS_ORIGIN` = `https://your-app.vercel.app`
+  - `WEATHER_API_KEY` = optional
+- **[Render](https://render.com)**: New Web Service → connect repo, **Root Directory** `event-management-app/backend`, build `npm install && npm run build`, start `npm start`. Add `DATABASE_URL` (and others) in Environment.
+
+After first deploy, run the schema once (e.g. Railway “Run command” or locally with `DATABASE_URL` set):
+
+```bash
+cd backend && npm run db:push
+```
+
+Then (optional) seed: `npm run db:seed`.
+
+**3. Frontend (Vercel)**  
+- Deploy this repo to Vercel with **Root Directory** = `event-management-app`.
+- In Vercel **Settings → Environment Variables** add:
+  - `VITE_API_URL` = your backend URL, e.g. `https://your-backend.railway.app/api`
+- Redeploy so the frontend is built with that URL.
+
+**4. CORS**  
+On the backend host, set `CORS_ORIGIN=https://your-project.vercel.app` so the browser allows requests from your Vercel domain.
 
 **If you see a Vercel error (e.g. a code like `fra1::xwl2v-...`):** That’s a deployment ID, not the real error.
 - In the Vercel dashboard open the failed **Deployment** → **Building** tab and check the **build logs** for the actual message (e.g. “No such file or directory”, “npm run build exited with 1”).

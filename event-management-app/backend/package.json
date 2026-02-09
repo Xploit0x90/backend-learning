@@ -4,7 +4,8 @@
   "description": "Backend for Event Management System",
   "main": "dist/server.js",
   "scripts": {
-    "start": "node dist/server.js",
+    "start": "npm run migrate && node dist/server.js",
+    "migrate": "drizzle-kit migrate",
     "dev": "tsx watch src/server.ts",
     "build": "tsc",
     "test": "jest",
