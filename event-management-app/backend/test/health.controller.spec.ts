@@ -1,7 +1,7 @@
 import express, { Application } from "express";
 import request from "supertest";
 
-import { HealthController } from "../src/controller/health.controller";
+import HealthController from "../src/controller/healthController";
 import { pool } from "../src/db";
 
 /**
@@ -58,7 +58,7 @@ describe("HealthController", () => {
       // Mock pool.query to throw an error
       const originalQuery = pool.query.bind(pool);
       const mockQuery = jest.fn().mockRejectedValue(new Error("Connection failed"));
-      (pool as { query: jest.Mock }).query = mockQuery;
+      (pool as unknown as { query: jest.Mock }).query = mockQuery;
 
       const response = await request(app).get("/health/db").expect(500);
 
