@@ -12,14 +12,9 @@ A full-stack web application for managing events, participants, and tags. Create
 
 ---
 
-## For recruiters & HR
+## Overview
 
-| | |
-|--|--|
-| **What it is** | A working full-stack CRUD application: events, participants, and tags with relationships (many-to-many). |
-| **What it shows** | Backend API design, React frontend, TypeScript end-to-end, RESTful routes, form validation, and deployment. |
-| **Tech used** | **Frontend:** React, TypeScript, Vite, Chakra UI, React Router, i18n (EN/DE). **Backend:** Node.js, Express, TypeScript, Drizzle ORM, Zod. **Database:** PostgreSQL. |
-| **Deployment** | Single deployment on Railway (app + API + DB). No login required — you can use the live link above directly. |
+Full-stack CRUD application for events, participants, and tags with many-to-many relationships. Includes a REST API (Node.js, Express, TypeScript), React frontend with TypeScript, form validation (Zod), and a single deployment on Railway (app, API, and PostgreSQL). No authentication — the live demo can be used directly.
 
 ---
 
