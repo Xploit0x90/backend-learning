@@ -1,8 +1,11 @@
 import axios from 'axios';
 import { Event, Participant, Tag, ApiResponse, Weather } from '../../types';
 
-// Base URL: origin only (no /api). All paths below include /api prefix.
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+// In dev: use same origin so Vite proxy forwards /api to backend (avoids CORS).
+// In prod: use full backend URL from env.
+const API_BASE_URL = import.meta.env.DEV
+  ? ''
+  : (import.meta.env.VITE_API_URL || 'http://localhost:5000');
 
 const api = axios.create({
   baseURL: API_BASE_URL,
