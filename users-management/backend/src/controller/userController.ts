@@ -1,5 +1,8 @@
 import UserService from "../services/userService.js"
 import type {Request, Response, NextFunction} from "express";
+import bcrypt from "bcrypt"
+import {registerSchema, loginSchema} from "../validators/userValidation.js"
+import jwt from "jsonwebtoken"
 
 class UserController {
     private userService: UserService;
@@ -8,14 +11,35 @@ class UserController {
         this.userService = new UserService();
     }
 
-    async createUser(req:Request, res:Response){
+    async createAccount(req:Request, res:Response){
         try{
-        const {name, age} = req.body
-        const newUser = await this.userService.createUser(name, Number(age))
-        res.status(201).json(newUser)}
+            const {email, password,name, age} = registerSchema.parse(req.body)
+
+            const existingUser = await this.userService.getUserByEmail(email);
+            if(existingUser){return res.status(400).json({message:"Email already taken"})}
+
+            const saltRounds = 10
+            const hashedPassword = await bcrypt.hash(password, saltRounds)
+            const newUser = await this.userService.createAccount(email, hashedPassword, name, Number(age))
+            res.status(201).json(newUser)}
         catch(error){
             res.status(400).json({success: false, error: error})
         }
+    }
+
+    async loginAccount(req:Request, res:Response){
+        const {email, password} = loginSchema.parse(req.body)
+        const existingUser = await this.userService.getUserByEmail(email);
+        if(!existingUser){return res.status(401).json({message:"Invalid email or password"})}
+        const correctPassword = await bcrypt.compare(password, existingUser.password)
+        if(!correctPassword || !existingUser){return res.status(400).json({message:"Invalid email or password"})}
+        
+        const payload = {
+            userId: existingUser.id,
+            email: existingUser.email
+        };
+        const theTokenString = jwt.sign(payload, process.env.JWT_SECRET!, { expiresIn: "7d" })
+        res.json({ token: theTokenString, user: { id: existingUser.id, name: existingUser.name, email: existingUser.email } })
     }
 
     async getAllUsers(req:Request, res:Response){
@@ -71,6 +95,7 @@ class UserController {
             return res.status(500).json({success: false, message:"Server error"})
         }
     }
+
 }
 
 export default UserController

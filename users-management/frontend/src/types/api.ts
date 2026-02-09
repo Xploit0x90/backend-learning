@@ -3,6 +3,19 @@ export interface User {
   id: number
   name: string
   age: number
+  email?: string
+}
+
+/** User returned from login/register (no password) */
+export interface AuthUser {
+  id: number
+  name: string
+  email: string
+}
+
+export interface LoginResponse {
+  token: string
+  user: AuthUser
 }
 
 export interface Project {

@@ -1,14 +1,15 @@
 # Task Board
 
-A full-stack **task board** app: manage **users**, **projects**, and **tasks** with status columns (To do → In progress → Done). Built with React, Express, and PostgreSQL.
+A full-stack **task board** app: manage **users**, **projects**, and **tasks** with status columns (To do → In progress → Done). Built with React, Express, and PostgreSQL. **Authentication** (JWT) scopes projects and tasks to the logged-in user.
 
 ---
 
 ## What it does
 
-- **Users** — List, search by name, and create users (used as task assignees).
-- **Projects** — List, create, edit, and delete projects (each project has its own task board).
-- **Task board** — Pick a project, add tasks (name + assignee), move tasks between columns (todo / in progress / done), and delete tasks.
+- **Auth** — Register and login; API uses Bearer JWT for protected routes.
+- **Users** — List and search users (used as task assignees). Create requires no auth; list/search is available when authenticated.
+- **Projects** — List, create, edit, and delete **your** projects (each has its own task board). New projects are tied to the logged-in user.
+- **Task board** — Pick a project, add tasks (name + assignee), move tasks between columns (todo / in progress / done), and delete tasks. Only tasks in projects you own (or legacy projects with no owner) are accessible.
 
 ---
 
@@ -47,12 +48,13 @@ Create a `.env` file in the `backend` folder:
 ```
 DATABASE_URL=postgresql://user:password@host/database?sslmode=require
 PORT=3000
+JWT_SECRET=your-secret-key-min-32-chars
 ```
 
-Apply migrations (if needed):
+Sync the database schema (adds tables and columns like `projects.user_id`):
 
 ```bash
-npx drizzle-kit migrate
+npm run db:push
 ```
 
 Start the server:
@@ -81,12 +83,13 @@ Open the URL shown (usually **http://localhost:5173**). The frontend proxies `/a
 
 ```
 users-management/
-├── backend/     # Express API (users, projects, tasks) + Drizzle + PostgreSQL
+├── backend/     # Express API (auth, users, projects, tasks) + Drizzle + PostgreSQL
 │   └── src/
 │       ├── controller/   # userController, projectController, taskController
-│       ├── routes/       # users, projects, tasks
+│       ├── routes/       # auth, users, projects, tasks
+│       ├── middleware/   # auth (JWT verify), logger
 │       ├── services/     # userService, projectService, taskService
-│       └── db/           # schema (users, projects, tasks), migrations
+│       └── db/           # schema (users, projects, tasks), db:push
 └── frontend/    # React + Vite + Tailwind (Users, Projects, Task board UI)
 ```
 

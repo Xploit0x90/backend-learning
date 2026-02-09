@@ -1,9 +1,12 @@
 import express from "express"
 import type { Request, Response } from "express"
 import TaskController from "../controller/taskController.js"
+import { requireAuth } from "../middleware/auth.js"
 
 const router = express.Router()
 const taskController = new TaskController()
+
+router.use(requireAuth)
 
 router.get("/", (req: Request, res: Response) => {
   taskController.getAll(req, res)

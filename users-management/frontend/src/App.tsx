@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import type { User, Project, Task, TaskStatus, ApiError } from './types/api'
+import type { User, Project, Task, TaskStatus, ApiError, AuthUser, LoginResponse } from './types/api'
 import { Navbar } from './components/Navbar'
 
 const API = {
@@ -10,19 +10,67 @@ const API = {
   tasks: '/api/tasks',
   tasksByProject: (projectId: number) => `/api/tasks?projectId=${projectId}`,
   task: (id: number) => `/api/tasks/${id}`,
+  auth: {
+    register: '/api/auth/register',
+    login: '/api/auth/login',
+  },
 }
+
+const TOKEN_KEY = 'taskboard_token'
+const USER_KEY = 'taskboard_user'
 
 function App() {
   const [loading, setLoading] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
+  // Auth: token + current user (persisted in localStorage)
+  const [token, setToken] = useState<string | null>(() => localStorage.getItem(TOKEN_KEY))
+  const [currentUser, setCurrentUser] = useState<AuthUser | null>(() => {
+    const raw = localStorage.getItem(USER_KEY)
+    if (!raw) return null
+    try {
+      return JSON.parse(raw) as AuthUser
+    } catch {
+      return null
+    }
+  })
+
+  function authHeaders(): HeadersInit {
+    const h: HeadersInit = { 'Content-Type': 'application/json' }
+    if (token) (h as Record<string, string>)['Authorization'] = `Bearer ${token}`
+    return h
+  }
+
+  function logout() {
+    setToken(null)
+    setCurrentUser(null)
+    localStorage.removeItem(TOKEN_KEY)
+    localStorage.removeItem(USER_KEY)
+    window.location.hash = '#login'
+  }
+
+  // Auth page: login | register (hash-based)
+  const [authPage, setAuthPage] = useState<'login' | 'register'>(() =>
+    typeof window !== 'undefined' && window.location.hash === '#register' ? 'register' : 'login'
+  )
+  useEffect(() => {
+    const onHash = () => setAuthPage(window.location.hash === '#register' ? 'register' : 'login')
+    window.addEventListener('hashchange', onHash)
+    onHash()
+    return () => window.removeEventListener('hashchange', onHash)
+  }, [])
+
   // Users
   const [users, setUsers] = useState<User[] | null>(null)
   const [searchResult, setSearchResult] = useState<User[] | ApiError | null>(null)
-  const [createdUser, setCreatedUser] = useState<User | null>(null)
+  const [registeredUser, setRegisteredUser] = useState<AuthUser | null>(null)
   const [searchName, setSearchName] = useState('')
-  const [newUserName, setNewUserName] = useState('')
-  const [newUserAge, setNewUserAge] = useState('')
+  const [registerEmail, setRegisterEmail] = useState('')
+  const [registerPassword, setRegisterPassword] = useState('')
+  const [registerName, setRegisterName] = useState('')
+  const [registerAge, setRegisterAge] = useState('')
+  const [loginEmail, setLoginEmail] = useState('')
+  const [loginPassword, setLoginPassword] = useState('')
 
   // Projects
   const [projects, setProjects] = useState<Project[]>([])
@@ -38,12 +86,75 @@ function App() {
   const [taskAssigneedId, setTaskAssigneedId] = useState<number | ''>('')
   const [loadingTaskId, setLoadingTaskId] = useState<number | null>(null)
 
+  async function login(e: React.FormEvent) {
+    e.preventDefault()
+    const email = loginEmail.trim()
+    const password = loginPassword
+    if (!email || !password) return
+    setLoading('login')
+    setError(null)
+    try {
+      const res = await fetch(API.auth.login, {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify({ email, password }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error((data as ApiError).message ?? res.statusText)
+      const { token: t, user: u } = data as LoginResponse
+      setToken(t)
+      setCurrentUser(u)
+      localStorage.setItem(TOKEN_KEY, t)
+      localStorage.setItem(USER_KEY, JSON.stringify(u))
+      setLoginEmail('')
+      setLoginPassword('')
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Request failed')
+    } finally {
+      setLoading(null)
+    }
+  }
+
+  async function register(e: React.FormEvent) {
+    e.preventDefault()
+    const email = registerEmail.trim()
+    const password = registerPassword
+    const name = registerName.trim()
+    const age = Number(registerAge)
+    if (!email || !password || !name || !Number.isInteger(age) || age < 1) return
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters')
+      return
+    }
+    setLoading('register')
+    setError(null)
+    setRegisteredUser(null)
+    try {
+      const res = await fetch(API.auth.register, {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify({ email, password, name, age }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error((data as ApiError).message ?? res.statusText)
+      setRegisteredUser(data as AuthUser)
+      setRegisterEmail('')
+      setRegisterPassword('')
+      setRegisterName('')
+      setRegisterAge('')
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Request failed')
+    } finally {
+      setLoading(null)
+    }
+  }
+
   async function loadUsers() {
     setLoading('users')
     setError(null)
     setUsers(null)
     try {
-      const res = await fetch(API.users)
+      const res = await fetch(API.users, { headers: authHeaders() })
       const data = await res.json()
       if (!res.ok) throw new Error((data as ApiError).message ?? res.statusText)
       setUsers(data as User[])
@@ -61,7 +172,7 @@ function App() {
     setError(null)
     setSearchResult(null)
     try {
-      const res = await fetch(API.userSearch(name))
+      const res = await fetch(API.userSearch(name), { headers: authHeaders() })
       const data = await res.json()
       if (!res.ok) throw new Error((data as ApiError).message ?? res.statusText)
       setSearchResult(Array.isArray(data) ? (data as User[]) : [])
@@ -72,37 +183,11 @@ function App() {
     }
   }
 
-  async function createUser(e: React.FormEvent) {
-    e.preventDefault()
-    const name = newUserName.trim()
-    const age = Number(newUserAge)
-    if (!name || !Number.isInteger(age) || age < 1) return
-    setLoading('createUser')
-    setError(null)
-    setCreatedUser(null)
-    try {
-      const res = await fetch(API.users, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, age }),
-      })
-      const data = await res.json()
-      if (!res.ok) throw new Error((data as ApiError).message ?? res.statusText)
-      setCreatedUser(data as User)
-      setNewUserName('')
-      setNewUserAge('')
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Request failed')
-    } finally {
-      setLoading(null)
-    }
-  }
-
   async function loadProjects() {
     setLoading('projects')
     setError(null)
     try {
-      const res = await fetch(API.projects)
+      const res = await fetch(API.projects, { headers: authHeaders() })
       const data = await res.json()
       if (!res.ok) throw new Error((data as ApiError).message ?? res.statusText)
       setProjects(data as Project[])
@@ -125,7 +210,7 @@ function App() {
     try {
       const res = await fetch(API.projects, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders(),
         body: JSON.stringify({ name }),
       })
       const data = await res.json()
@@ -149,7 +234,7 @@ function App() {
     try {
       const res = await fetch(API.project(editingProjectId), {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders(),
         body: JSON.stringify({ name }),
       })
       const data = await res.json()
@@ -168,7 +253,7 @@ function App() {
     setBusyProjectId(id)
     setError(null)
     try {
-      const res = await fetch(API.project(id), { method: 'DELETE' })
+      const res = await fetch(API.project(id), { method: 'DELETE', headers: authHeaders() })
       if (!res.ok) {
         const data = await res.json()
         throw new Error((data as ApiError).message ?? res.statusText)
@@ -190,7 +275,7 @@ function App() {
     setLoading('tasks')
     setError(null)
     try {
-      const res = await fetch(API.tasksByProject(selectedProjectId))
+      const res = await fetch(API.tasksByProject(selectedProjectId), { headers: authHeaders() })
       const data = await res.json()
       if (!res.ok) throw new Error((data as ApiError).message ?? res.statusText)
       setTasks(Array.isArray(data) ? (data as Task[]) : [])
@@ -206,7 +291,7 @@ function App() {
     async function init() {
       setError(null)
       try {
-        const res = await fetch(API.projects)
+        const res = await fetch(API.projects, { headers: authHeaders() })
         const data = await res.json()
         if (res.ok) setProjects(data as Project[])
       } catch {
@@ -214,7 +299,7 @@ function App() {
       }
     }
     init()
-  }, [])
+  }, [token])
 
   // Load tasks when project is selected
   useEffect(() => {
@@ -225,7 +310,7 @@ function App() {
     let cancelled = false
     setLoading('tasks')
     setError(null)
-    fetch(API.tasksByProject(selectedProjectId))
+    fetch(API.tasksByProject(selectedProjectId), { headers: authHeaders() })
       .then((res) => {
         if (cancelled) return res.json().then(() => ({}))
         if (!res.ok) throw new Error('Failed to load tasks')
@@ -242,13 +327,13 @@ function App() {
         if (!cancelled) setLoading(null)
       })
     return () => { cancelled = true }
-  }, [selectedProjectId])
+  }, [selectedProjectId, token])
 
   // Auto-load users when a project is selected (for assignee dropdown)
   useEffect(() => {
     if (selectedProjectId == null || users != null) return
     let cancelled = false
-    fetch(API.users)
+    fetch(API.users, { headers: authHeaders() })
       .then((res) => res.json())
       .then((data) => {
         if (cancelled) return
@@ -269,7 +354,7 @@ function App() {
     try {
       const res = await fetch(API.tasks, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders(),
         body: JSON.stringify({ name, projectId: selectedProjectId, assignedUserId }),
       })
       const data = await res.json()
@@ -290,7 +375,7 @@ function App() {
     try {
       const res = await fetch(API.task(taskId), {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders(),
         body: JSON.stringify({ status: newStatus }),
       })
       const data = await res.json()
@@ -307,7 +392,7 @@ function App() {
     setLoadingTaskId(taskId)
     setError(null)
     try {
-      const res = await fetch(API.task(taskId), { method: 'DELETE' })
+      const res = await fetch(API.task(taskId), { method: 'DELETE', headers: authHeaders() })
       if (!res.ok) {
         const data = await res.json()
         throw new Error((data as ApiError).message ?? res.statusText)
@@ -329,26 +414,151 @@ function App() {
   ]
 
   const inputClass =
-    'px-3 py-2 rounded-lg bg-slate-800 border border-slate-600 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500'
+    'px-3.5 py-2.5 rounded-lg bg-slate-800/80 border border-slate-600/80 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 transition-colors'
   const btnPrimary =
-    'px-4 py-2 rounded-lg bg-indigo-600 text-white font-medium hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
+    'px-4 py-2.5 rounded-lg bg-indigo-600 text-white font-medium hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm'
   const btnDanger =
-    'px-3 py-1.5 rounded-lg bg-red-600/80 text-white text-sm hover:bg-red-500 disabled:opacity-50 transition-colors'
-  const sectionClass = 'rounded-xl bg-slate-800/50 border border-slate-700/50 p-6 shadow-xl scroll-mt-6'
+    'px-3 py-1.5 rounded-lg bg-red-600/80 text-white text-sm font-medium hover:bg-red-500 disabled:opacity-50 transition-colors'
+  const sectionClass = 'rounded-xl bg-slate-800/40 border border-slate-700/60 p-6 md:p-8 shadow-lg scroll-mt-6'
 
+  // Not logged in: show only Login or Register page (hash-based)
+  if (!token) {
+    return (
+      <div className="min-h-screen bg-slate-900 text-slate-100 antialiased flex flex-col">
+        <header className="border-b border-slate-700/60 bg-slate-800/40 py-4">
+          <div className="max-w-md mx-auto px-4 flex items-center justify-between">
+            <a href="/" className="text-lg font-semibold tracking-tight text-white">
+              Task Board
+            </a>
+            <nav className="flex gap-4">
+              <a
+                href="#login"
+                className={`text-sm font-medium transition-colors ${authPage === 'login' ? 'text-white' : 'text-slate-400 hover:text-white'}`}
+              >
+                Log in
+              </a>
+              <a
+                href="#register"
+                className={`text-sm font-medium transition-colors ${authPage === 'register' ? 'text-white' : 'text-slate-400 hover:text-white'}`}
+              >
+                Create account
+              </a>
+            </nav>
+          </div>
+        </header>
+        <main className="flex-1 flex items-center justify-center px-4 py-12">
+          <div className="w-full max-w-md">
+            {authPage === 'login' ? (
+              <div className="rounded-xl bg-slate-800/40 border border-slate-700/60 p-6 md:p-8 shadow-lg">
+                <h2 className="text-xl font-semibold text-white mb-6">Log in</h2>
+                <form onSubmit={login} className="flex flex-col gap-4">
+                  <input
+                    type="email"
+                    value={loginEmail}
+                    onChange={(e) => setLoginEmail(e.target.value)}
+                    placeholder="Email"
+                    className={inputClass}
+                    required
+                  />
+                  <input
+                    type="password"
+                    value={loginPassword}
+                    onChange={(e) => setLoginPassword(e.target.value)}
+                    placeholder="Password"
+                    className={inputClass}
+                    required
+                  />
+                  <button type="submit" disabled={loading === 'login'} className={btnPrimary}>
+                    {loading === 'login' ? 'Logging in…' : 'Log in'}
+                  </button>
+                </form>
+                <p className="mt-4 text-sm text-slate-500">
+                  Don’t have an account? <a href="#register" className="text-indigo-400 hover:text-indigo-300">Create one</a>.
+                </p>
+              </div>
+            ) : (
+              <div className="rounded-xl bg-slate-800/40 border border-slate-700/60 p-6 md:p-8 shadow-lg">
+                <h2 className="text-xl font-semibold text-white mb-6">Create account</h2>
+                <form onSubmit={register} className="flex flex-col gap-4">
+                  <input
+                    type="email"
+                    value={registerEmail}
+                    onChange={(e) => setRegisterEmail(e.target.value)}
+                    placeholder="Email"
+                    className={inputClass}
+                    required
+                  />
+                  <input
+                    type="password"
+                    value={registerPassword}
+                    onChange={(e) => setRegisterPassword(e.target.value)}
+                    placeholder="Password (min 6)"
+                    className={inputClass}
+                    minLength={6}
+                    required
+                  />
+                  <input
+                    type="text"
+                    value={registerName}
+                    onChange={(e) => setRegisterName(e.target.value)}
+                    placeholder="Name"
+                    className={inputClass}
+                    required
+                  />
+                  <input
+                    type="number"
+                    value={registerAge}
+                    onChange={(e) => setRegisterAge(e.target.value)}
+                    placeholder="Age"
+                    min={1}
+                    className={inputClass}
+                    required
+                  />
+                  <button type="submit" disabled={loading === 'register'} className="px-4 py-2.5 rounded-lg bg-emerald-600 text-white font-medium hover:bg-emerald-500 disabled:opacity-50 transition-colors">
+                    {loading === 'register' ? 'Registering…' : 'Create account'}
+                  </button>
+                </form>
+                {registeredUser && (
+                  <p className="mt-4 text-sm text-emerald-400">
+                    Account created. <a href="#login" className="underline">Log in</a>.
+                  </p>
+                )}
+                <p className="mt-4 text-sm text-slate-500">
+                  Already have an account? <a href="#login" className="text-indigo-400 hover:text-indigo-300">Log in</a>.
+                </p>
+              </div>
+            )}
+            {error && (
+              <div
+                role="alert"
+                className="mt-4 rounded-lg bg-red-900/20 border border-red-800/50 p-4 text-red-200 text-sm flex items-center justify-between gap-4"
+              >
+                <span>{error}</span>
+                <button type="button" onClick={() => setError(null)} className="shrink-0 px-3 py-1.5 rounded-md bg-red-800/40 text-red-100 text-sm font-medium">
+                  Dismiss
+                </button>
+              </div>
+            )}
+          </div>
+        </main>
+      </div>
+    )
+  }
+
+  // Logged in: main app
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-100">
-      <Navbar />
-      <div className="max-w-6xl mx-auto p-6 md:p-10 space-y-8">
-        <header className="text-center pt-2">
-          <h1 className="text-3xl font-bold tracking-tight text-white">Task Board</h1>
-          <p className="text-slate-400 mt-1">Projects & tasks · Assign to users</p>
+    <div className="min-h-screen bg-slate-900 text-slate-100 antialiased">
+      <Navbar token={token} currentUser={currentUser} onLogout={logout} />
+      <div className="max-w-6xl mx-auto px-4 py-8 md:px-8 md:py-10 space-y-10">
+        <header className="text-center pb-2">
+          <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-white">Task Board</h1>
+          <p className="text-slate-400 mt-2 text-sm md:text-base">Signed in as {currentUser?.name}</p>
         </header>
 
         {/* Users */}
         <section id="users" className={sectionClass}>
-          <h2 className="text-lg font-semibold text-white mb-4">Users</h2>
-          <div className="grid gap-6 md:grid-cols-3">
+          <h2 className="text-base font-semibold text-slate-200 uppercase tracking-wide mb-5">Users</h2>
+          <div className="grid gap-6 md:grid-cols-2">
             <div>
               <h3 className="text-sm font-medium text-slate-400 mb-2">List</h3>
               <button
@@ -412,44 +622,13 @@ function App() {
                 </div>
               )}
             </div>
-            <div>
-              <h3 className="text-sm font-medium text-slate-400 mb-2">Create user</h3>
-              <form onSubmit={createUser} className="flex flex-wrap gap-2">
-                <input
-                  type="text"
-                  value={newUserName}
-                  onChange={(e) => setNewUserName(e.target.value)}
-                  placeholder="Name"
-                  className={inputClass}
-                />
-                <input
-                  type="number"
-                  value={newUserAge}
-                  onChange={(e) => setNewUserAge(e.target.value)}
-                  placeholder="Age"
-                  min={1}
-                  className={inputClass + ' w-20'}
-                />
-                <button
-                  type="submit"
-                  disabled={loading === 'createUser' || !newUserName.trim() || !newUserAge.trim()}
-                  className="px-4 py-2 rounded-lg bg-emerald-600 text-white font-medium hover:bg-emerald-500 disabled:opacity-50"
-                >
-                  Create
-                </button>
-              </form>
-              {createdUser && (
-                <p className="mt-2 text-sm text-emerald-400">
-                  Created {createdUser.name} (id {createdUser.id})
-                </p>
-              )}
-            </div>
           </div>
+          <p className="mt-4 text-sm text-slate-500">Users here can be assigned to tasks. New accounts are created on the Log in / Create account pages.</p>
         </section>
 
         {/* Projects */}
         <section id="projects" className={sectionClass}>
-          <h2 className="text-lg font-semibold text-white mb-4">Projects</h2>
+          <h2 className="text-base font-semibold text-slate-200 uppercase tracking-wide mb-5">Projects</h2>
           <div className="flex flex-wrap gap-2 mb-4">
             <button
               type="button"
@@ -480,7 +659,7 @@ function App() {
             {projects.map((p) => (
               <li
                 key={p.id}
-                className="flex items-center gap-3 rounded-lg bg-slate-800 p-3 border border-slate-600/50"
+                className="flex items-center gap-3 rounded-lg bg-slate-800/60 p-4 border border-slate-600/50"
               >
                 {editingProjectId === p.id ? (
                   <form onSubmit={updateProject} className="flex gap-2 flex-1">
@@ -530,7 +709,7 @@ function App() {
 
         {/* Task board */}
         <section id="board" className={sectionClass}>
-          <h2 className="text-lg font-semibold text-white mb-4">Task board</h2>
+          <h2 className="text-base font-semibold text-slate-200 uppercase tracking-wide mb-5">Task board</h2>
           <div className="flex flex-wrap items-center gap-3 mb-4">
             <label className="text-slate-400 text-sm">Project:</label>
             <select
@@ -611,9 +790,9 @@ function App() {
                   {columns.map((col) => (
                     <div
                       key={col.status}
-                      className="rounded-xl bg-slate-800/80 border border-slate-600/50 p-4 min-h-[200px]"
+                      className="rounded-xl bg-slate-800/60 border border-slate-600/50 p-4 min-h-[200px]"
                     >
-                      <h3 className="text-sm font-semibold text-slate-300 mb-3 uppercase tracking-wide">
+                      <h3 className="text-xs font-semibold text-slate-400 mb-3 uppercase tracking-wider">
                         {col.label}
                       </h3>
                       <ul className="space-y-2">
@@ -622,7 +801,7 @@ function App() {
                           .map((t) => (
                             <li
                               key={t.id}
-                              className="rounded-lg bg-slate-700/80 border border-slate-600/50 p-3 flex flex-col gap-2"
+                              className="rounded-lg bg-slate-700/60 border border-slate-600/40 p-3 flex flex-col gap-2"
                             >
                               <span className="font-medium text-white">{t.name}</span>
                               <span className="text-slate-400 text-sm">
@@ -665,13 +844,13 @@ function App() {
         {error && (
           <div
             role="alert"
-            className="rounded-lg bg-red-900/30 border border-red-700/50 p-4 text-red-300 text-sm flex items-center justify-between gap-4"
+            className="rounded-lg bg-red-900/20 border border-red-800/50 p-4 text-red-200 text-sm flex items-center justify-between gap-4"
           >
             <span>{error}</span>
             <button
               type="button"
               onClick={() => setError(null)}
-              className="shrink-0 px-2 py-1 rounded bg-red-800/50 hover:bg-red-700/50 text-red-200"
+              className="shrink-0 px-3 py-1.5 rounded-md bg-red-800/40 hover:bg-red-700/50 text-red-100 text-sm font-medium"
             >
               Dismiss
             </button>

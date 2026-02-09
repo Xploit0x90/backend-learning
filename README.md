@@ -21,6 +21,12 @@ Advanced notes management with categories and timestamps.
 - **Features:** CRUD, Validation, Timestamps, Categories, Partial Updates, 404 Handler
 - **Skills:** Input sanitization, Advanced validation, RESTful design
 
+### [Users Management - Task Board](./users-management)
+Full-stack task board: users, projects, and tasks with auth and per-user scoping.
+- **Tech:** Node.js, Express, TypeScript, React, PostgreSQL (Neon), Drizzle ORM
+- **Features:** Register/Login (JWT), CRUD users, projects & tasks scoped by logged-in user
+- **Skills:** JWT auth, middleware, relational DB, REST API
+
 ## 📚 Skills Learned
 
 - RESTful API design
@@ -35,7 +41,7 @@ Advanced notes management with categories and timestamps.
 ## 🎯 What's Next
 
 - [ ] MongoDB integration
-- [ ] Authentication (JWT)
+- [x] Authentication (JWT) — *Users Management project*
 - [ ] File upload handling
 - [ ] Portfolio backend project
 - [ ] Deployment
