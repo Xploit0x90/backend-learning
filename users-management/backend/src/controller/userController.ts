@@ -27,22 +27,31 @@ class UserController {
         }
     }
 
+
+
     async loginAccount(req:Request, res:Response){
-        const {email, password} = loginSchema.parse(req.body)
-        const existingUser = await this.userService.getUserByEmail(email);
-        if(!existingUser){return res.status(401).json({message:"Invalid email or password"})}
-        const correctPassword = await bcrypt.compare(password, existingUser.password)
-        if(!correctPassword || !existingUser){return res.status(400).json({message:"Invalid email or password"})}
-        
-        const payload = {
-            userId: existingUser.id,
-            email: existingUser.email
-        };
-        const theTokenString = jwt.sign(payload, process.env.JWT_SECRET!, { expiresIn: "7d" })
-        res.json({ token: theTokenString, user: { id: existingUser.id, name: existingUser.name, email: existingUser.email } })
+        try{
+            const {email, password} = loginSchema.parse(req.body)
+            const existingUser = await this.userService.getUserByEmail(email);
+            if(!existingUser){return res.status(401).json({message:"Invalid email or password"})}
+            const correctPassword = await bcrypt.compare(password, existingUser.password)
+            if(!correctPassword){return res.status(401).json({message:"Invalid email or password"})}
+
+            const payload = {
+                userId: existingUser.id,
+                email: existingUser.email
+            };
+            const theTokenString = jwt.sign(payload, process.env.JWT_SECRET!, { expiresIn: "7d" })
+            res.json({ token: theTokenString, user: { id: existingUser.id, name: existingUser.name, email: existingUser.email } })
+        }catch(error){
+            const status = (error as { name?: string })?.name === "ZodError" ? 400 : 500
+            res.status(status).json({ success: false, message: status === 400 ? "Invalid request" : "Server error" })
+        }
     }
 
     async getAllUsers(req:Request, res:Response){
+        const userId = req.user?.userId
+        if (userId == null) return res.status(401).json({ success: false, message: "Authentication required" })
         try{
             const users = await this.userService.getAllUsers();
             return res.status(200).json(users ?? [])
@@ -53,6 +62,8 @@ class UserController {
     }
 
     async getUserById(req:Request, res:Response){
+        const userId = req.user?.userId
+        if (userId == null) return res.status(401).json({ success: false, message: "Authentication required" })
         try{
             const id = req.params.id
             const user = await this.userService.getUserById(Number(id))
@@ -67,6 +78,8 @@ class UserController {
     }
 
     async getUserByName(req:Request, res:Response){
+        const userId = req.user?.userId
+        if (userId == null) return res.status(401).json({ success: false, message: "Authentication required" })
         try{
             const name = req.query.name;
             const nameStr = typeof name === "string" ? name : undefined;
@@ -81,6 +94,8 @@ class UserController {
     }
 
     async deleteUser(req:Request, res:Response){
+        const userId = req.user?.userId
+        if (userId == null) return res.status(401).json({ success: false, message: "Authentication required" })
         try{
             const id = Number(req.params.id);
             if (!id) {
