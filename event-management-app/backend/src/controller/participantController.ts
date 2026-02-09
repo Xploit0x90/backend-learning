@@ -14,7 +14,7 @@ class ParticipantController {
     this.participantService = new ParticipantService();
   }
 
-  async getAllParticipants(req: Request, res: Response) {
+  async getAllParticipants(_req: Request, res: Response) {
     try {
       const participants = await this.participantService.getAllParticipants();
       return res.json({ success: true, data: participants });

@@ -14,7 +14,7 @@ class TagController {
     this.tagService = new TagService();
   }
 
-  async getAllTags(req: Request, res: Response) {
+  async getAllTags(_req: Request, res: Response) {
     try {
       const tags = await this.tagService.getAllTags();
       return res.json({ success: true, data: tags });

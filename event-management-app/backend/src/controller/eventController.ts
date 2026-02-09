@@ -14,7 +14,7 @@ class EventController {
     this.eventService = new EventService();
   }
 
-  async getAllEvents(req: Request, res: Response) {
+  async getAllEvents(_req: Request, res: Response) {
     try {
       const events = await this.eventService.getAllEvents();
       return res.json({ success: true, data: events });

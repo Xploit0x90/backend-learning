@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Participant } from '../types';
+import type { ApiErrorLike, ApiErrorPayload } from '../types';
 import { Users, Mail, Phone, GraduationCap, Calendar, Plus, Search, Edit2, Trash2 } from 'lucide-react';
 import CreateParticipantModal from '../components/CreateParticipantModal';
 import { getAllParticipants, deleteParticipant } from '../adapter/api/useApiClient';
@@ -70,14 +71,14 @@ const ParticipantsPage: React.FC = () => {
       setParticipants(data);
       setError(null);
     } catch (err: unknown) {
-      const hasResponse = err && typeof err === 'object' && 'response' in err;
-      const code = err && typeof err === 'object' && 'code' in err && (err as { code?: string }).code;
-      const message = err && typeof err === 'object' && 'message' in err && typeof (err as { message?: unknown }).message === 'string' && (err as { message: string }).message;
-      const resData = hasResponse && (err as { response?: { data?: { message?: string; error?: string } } }).response?.data;
-      const isNetworkError = !hasResponse && (code === 'ERR_NETWORK' || message?.includes('Network Error'));
+      const errObj = err as ApiErrorLike;
+      const data: ApiErrorPayload | undefined = errObj.response?.data;
+      const code = errObj.code;
+      const message = typeof errObj.message === 'string' ? errObj.message : '';
+      const isNetworkError = !errObj.response && (code === 'ERR_NETWORK' || message.includes('Network Error'));
       const errorMessage = isNetworkError
         ? t('participants.backendUnavailable')
-        : (resData?.message || resData?.error || t('participants.loadError'));
+        : (data?.message ?? data?.error ?? t('participants.loadError'));
       setError(errorMessage);
       console.error('Error loading participants:', err);
     } finally {

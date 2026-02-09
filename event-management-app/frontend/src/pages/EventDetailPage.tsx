@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { getEventById, getAllParticipants, getAllTags, addParticipantToEvent, removeParticipantFromEvent, addTagToEvent, removeTagFromEvent, deleteEvent, getWeather } from '../adapter/api/useApiClient';
 import { Event, Participant, Tag, Weather } from '../types';
+import type { ApiErrorLike } from '../types';
 import { ArrowLeft, Calendar, MapPin, Users, Clock, Edit2, Trash2, Plus, X, Cloud, Droplets, Wind } from 'lucide-react';
 import EditEventModal from '../components/EditEventModal';
 import {
@@ -108,7 +109,7 @@ const EventDetailPage: React.FC = () => {
       setWeather(weatherData);
     } catch (err: unknown) {
       console.error('Error loading weather:', err);
-      const res = err && typeof err === 'object' && 'response' in err && (err as { response?: { status?: number; data?: { message?: string } } }).response;
+      const res = (err as ApiErrorLike).response;
       if (res?.status === 500 && (
         res?.data?.message?.includes('Weather API key not configured') ||
         res?.data?.message?.includes('Wetter-API-Schlüssel nicht konfiguriert')

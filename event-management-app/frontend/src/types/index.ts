@@ -40,6 +40,23 @@ export interface Event {
     events?: Event[];
   }
   
+  // API error payload (backend validation/error response)
+  export interface ApiErrorPayload {
+    message?: string;
+    error?: string;
+    errors?: Array<{ field?: string; message?: string }>;
+  }
+
+  // Axios-like error for type narrowing in catch blocks
+  export interface ApiErrorLike {
+    response?: {
+      status?: number;
+      data?: ApiErrorPayload;
+    };
+    code?: string;
+    message?: string;
+  }
+
   // API Response Types
   export interface ApiResponse<T> {
     success: boolean;

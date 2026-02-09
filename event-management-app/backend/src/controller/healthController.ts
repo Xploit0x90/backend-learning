@@ -2,7 +2,7 @@ import type { Request, Response } from "express";
 import { pool } from "../db.js";
 
 class HealthController {
-  async getHealthStatus(req: Request, res: Response) {
+  async getHealthStatus(_req: Request, res: Response) {
     return res.json({
       status: "OK",
       message: "Server is running!",
@@ -10,7 +10,7 @@ class HealthController {
     });
   }
 
-  async getDbTest(req: Request, res: Response) {
+  async getDbTest(_req: Request, res: Response) {
     try {
       const result = await pool.query("SELECT NOW()");
       return res.json({

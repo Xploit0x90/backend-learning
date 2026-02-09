@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Calendar, MapPin, Users, Image, FileText } from 'lucide-react';
 import { createEvent } from '../adapter/api/useApiClient';
+import type { ApiErrorLike, ApiErrorPayload } from '../types';
 import {
   Modal,
   ModalOverlay,
@@ -133,10 +134,10 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onClose, on
       onSuccess();
       onClose();
     } catch (err: unknown) {
-      const data = err && typeof err === 'object' && 'response' in err && (err as { response?: { data?: { errors?: Array<{ field?: string; message?: string }> } } }).response?.data;
+      const data: ApiErrorPayload | undefined = (err as ApiErrorLike).response?.data;
       if (data?.errors && Array.isArray(data.errors)) {
         const backendErrors: Record<string, string> = {};
-        data.errors.forEach((error: { field?: string; message?: string }) => {
+        data.errors.forEach((error) => {
           const fieldMap: Record<string, string> = {
             'title': 'title',
             'location': 'location',
@@ -144,14 +145,13 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onClose, on
             'max_participants': 'max_participants',
             'image_url': 'image_url',
           };
-          const frontendField = fieldMap[error.field] || error.field;
-          backendErrors[frontendField] = error.message;
+          const frontendField = (error.field && fieldMap[error.field]) || error.field || '';
+          backendErrors[frontendField] = error.message ?? '';
         });
         setFieldErrors(backendErrors);
         setError(t('createEvent.fixFields'));
       } else {
-        const resData = err && typeof err === 'object' && 'response' in err && (err as { response?: { data?: { message?: string; error?: string } } }).response?.data;
-        const errorMessage = resData?.message || resData?.error || t('createEvent.createError');
+        const errorMessage = data?.message ?? data?.error ?? t('createEvent.createError');
         setError(errorMessage);
       }
       console.error('Create event error:', err);

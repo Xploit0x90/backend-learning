@@ -52,7 +52,7 @@ function extractCityName(location: string): string {
 class WeatherController {
   async getWeather(req: Request, res: Response) {
     try {
-      const { location, date } = req.query;
+      const { location } = req.query;
       if (!location) {
         return res.status(400).json({
           success: false,

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { User, Mail, Phone, GraduationCap, FileText } from 'lucide-react';
 import { createParticipant } from '../adapter/api/useApiClient';
+import type { ApiErrorLike, ApiErrorPayload } from '../types';
 import {
   Modal,
   ModalOverlay,
@@ -117,10 +118,11 @@ const CreateParticipantModal: React.FC<CreateParticipantModalProps> = ({ isOpen,
       onSuccess();
       onClose();
     } catch (err: unknown) {
-      const data = err && typeof err === 'object' && 'response' in err && (err as { response?: { data?: { errors?: Array<{ field?: string; message?: string }> } } }).response?.data;
+      const errObj = err as ApiErrorLike;
+      const data: ApiErrorPayload | undefined = errObj.response?.data;
       if (data?.errors && Array.isArray(data.errors)) {
         const backendErrors: Record<string, string> = {};
-        data.errors.forEach((error: { field?: string; message?: string }) => {
+        data.errors.forEach((error) => {
           const fieldMap: Record<string, string> = {
             'first_name': 'first_name',
             'last_name': 'last_name',
@@ -128,17 +130,16 @@ const CreateParticipantModal: React.FC<CreateParticipantModalProps> = ({ isOpen,
             'phone': 'phone',
             'study_program': 'study_program',
           };
-          const frontendField = fieldMap[error.field] || error.field;
-          backendErrors[frontendField] = error.message;
+          const frontendField = (error.field && fieldMap[error.field]) || error.field || '';
+          backendErrors[frontendField] = error.message ?? '';
         });
         setFieldErrors(backendErrors);
         setError(t('createParticipant.fixFields'));
-      } else if (err && typeof err === 'object' && 'response' in err && (err as { response?: { status?: number } }).response?.status === 409) {
+      } else if (errObj.response?.status === 409) {
         setError(t('createParticipant.emailExists'));
         setFieldErrors({ email: t('createParticipant.emailInUse') });
       } else {
-        const resData = err && typeof err === 'object' && 'response' in err && (err as { response?: { data?: { message?: string; error?: string } } }).response?.data;
-        const errorMessage = resData?.message || resData?.error || t('createParticipant.createError');
+        const errorMessage = data?.message ?? data?.error ?? t('createParticipant.createError');
         setError(errorMessage);
       }
       console.error(err);
