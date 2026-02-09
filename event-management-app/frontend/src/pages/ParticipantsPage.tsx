@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Participant } from '../types';
@@ -63,29 +63,31 @@ const ParticipantsPage: React.FC = () => {
     p.study_program?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  useEffect(() => {
-    loadParticipants();
-  }, []);
-
-  const loadParticipants = async () => {
+  const loadParticipants = useCallback(async () => {
     try {
       setLoading(true);
       const data = await getAllParticipants();
       setParticipants(data);
       setError(null);
-    } catch (err: any) {
-      const isNetworkError = !err?.response && (err?.code === 'ERR_NETWORK' || err?.message?.includes('Network Error'));
+    } catch (err: unknown) {
+      const hasResponse = err && typeof err === 'object' && 'response' in err;
+      const code = err && typeof err === 'object' && 'code' in err && (err as { code?: string }).code;
+      const message = err && typeof err === 'object' && 'message' in err && typeof (err as { message?: unknown }).message === 'string' && (err as { message: string }).message;
+      const resData = hasResponse && (err as { response?: { data?: { message?: string; error?: string } } }).response?.data;
+      const isNetworkError = !hasResponse && (code === 'ERR_NETWORK' || message?.includes('Network Error'));
       const errorMessage = isNetworkError
         ? t('participants.backendUnavailable')
-        : (err?.response?.data?.message ||
-           err?.response?.data?.error ||
-           t('participants.loadError'));
+        : (resData?.message || resData?.error || t('participants.loadError'));
       setError(errorMessage);
-      console.error('Error loading participants:', err?.response?.data || err);
+      console.error('Error loading participants:', err);
     } finally {
       setLoading(false);
     }
-  };
+  }, [t]);
+
+  useEffect(() => {
+    loadParticipants();
+  }, [loadParticipants]);
 
   const handleDeleteParticipant = async (id: number, name: string) => {
     if (window.confirm(t('participants.deleteConfirm', { name }))) {

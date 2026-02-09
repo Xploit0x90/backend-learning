@@ -132,10 +132,11 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onClose, on
 
       onSuccess();
       onClose();
-    } catch (err: any) {
-      if (err?.response?.data?.errors && Array.isArray(err.response.data.errors)) {
+    } catch (err: unknown) {
+      const data = err && typeof err === 'object' && 'response' in err && (err as { response?: { data?: { errors?: Array<{ field?: string; message?: string }> } } }).response?.data;
+      if (data?.errors && Array.isArray(data.errors)) {
         const backendErrors: Record<string, string> = {};
-        err.response.data.errors.forEach((error: any) => {
+        data.errors.forEach((error: { field?: string; message?: string }) => {
           const fieldMap: Record<string, string> = {
             'title': 'title',
             'location': 'location',
@@ -149,12 +150,11 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({ isOpen, onClose, on
         setFieldErrors(backendErrors);
         setError(t('createEvent.fixFields'));
       } else {
-        const errorMessage = err?.response?.data?.message || 
-                            err?.response?.data?.error || 
-                            t('createEvent.createError');
+        const resData = err && typeof err === 'object' && 'response' in err && (err as { response?: { data?: { message?: string; error?: string } } }).response?.data;
+        const errorMessage = resData?.message || resData?.error || t('createEvent.createError');
         setError(errorMessage);
       }
-      console.error('Create event error:', err?.response?.data || err);
+      console.error('Create event error:', err);
     } finally {
       setLoading(false);
     }

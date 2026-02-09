@@ -199,8 +199,8 @@ describe("ParticipantController", () => {
         email: "existing@example.com",
         phone: "123456789",
       };
-      const error = new Error("Duplicate email");
-      (error as any).code = "23505";
+      const error = new Error("Duplicate email") as Error & { code?: string };
+      error.code = "23505";
 
       mockRequest.body = newParticipantData;
       mockParticipantRepository.createParticipant.mockRejectedValue(error);

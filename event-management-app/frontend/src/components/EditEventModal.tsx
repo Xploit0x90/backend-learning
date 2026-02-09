@@ -91,21 +91,19 @@ const EditEventModal: React.FC<EditEventModalProps> = ({ isOpen, onClose, onSucc
 
       onSuccess();
       onClose();
-    } catch (err: any) {
-      const errorMessage = err?.response?.data?.message || 
-                          err?.response?.data?.error || 
-                          err?.response?.data?.errors?.[0]?.message ||
-                          'Fehler beim Aktualisieren des Events';
-      
-      if (err?.response?.data?.errors) {
-        const validationErrors = err.response.data.errors
-          .map((e: any) => `${e.field}: ${e.message}`)
+    } catch (err: unknown) {
+      const data = err && typeof err === 'object' && 'response' in err && (err as { response?: { data?: { message?: string; error?: string; errors?: Array<{ field?: string; message?: string }> } } }).response?.data;
+      const errorMessage = data?.message || data?.error || data?.errors?.[0]?.message || 'Fehler beim Aktualisieren des Events';
+
+      if (data?.errors) {
+        const validationErrors = data.errors
+          .map((e: { field?: string; message?: string }) => `${e.field}: ${e.message}`)
           .join(', ');
         setError(`Validierungsfehler: ${validationErrors}`);
       } else {
         setError(errorMessage);
       }
-      console.error('Update event error:', err?.response?.data || err);
+      console.error('Update event error:', err);
     } finally {
       setLoading(false);
     }

@@ -116,10 +116,11 @@ const CreateParticipantModal: React.FC<CreateParticipantModalProps> = ({ isOpen,
 
       onSuccess();
       onClose();
-    } catch (err: any) {
-      if (err?.response?.data?.errors && Array.isArray(err.response.data.errors)) {
+    } catch (err: unknown) {
+      const data = err && typeof err === 'object' && 'response' in err && (err as { response?: { data?: { errors?: Array<{ field?: string; message?: string }> } } }).response?.data;
+      if (data?.errors && Array.isArray(data.errors)) {
         const backendErrors: Record<string, string> = {};
-        err.response.data.errors.forEach((error: any) => {
+        data.errors.forEach((error: { field?: string; message?: string }) => {
           const fieldMap: Record<string, string> = {
             'first_name': 'first_name',
             'last_name': 'last_name',
@@ -132,13 +133,12 @@ const CreateParticipantModal: React.FC<CreateParticipantModalProps> = ({ isOpen,
         });
         setFieldErrors(backendErrors);
         setError(t('createParticipant.fixFields'));
-      } else if (err.response?.status === 409) {
+      } else if (err && typeof err === 'object' && 'response' in err && (err as { response?: { status?: number } }).response?.status === 409) {
         setError(t('createParticipant.emailExists'));
         setFieldErrors({ email: t('createParticipant.emailInUse') });
       } else {
-        const errorMessage = err?.response?.data?.message || 
-                            err?.response?.data?.error || 
-                            t('createParticipant.createError');
+        const resData = err && typeof err === 'object' && 'response' in err && (err as { response?: { data?: { message?: string; error?: string } } }).response?.data;
+        const errorMessage = resData?.message || resData?.error || t('createParticipant.createError');
         setError(errorMessage);
       }
       console.error(err);

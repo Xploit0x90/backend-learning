@@ -1,9 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor, fireEvent } from '../test-utils';
+import { render, screen } from '../test-utils';
 import CreateTagModal from '../../src/components/CreateTagModal';
-import * as apiClient from '../../src/adapter/api/useApiClient';
 
-// Mock the API client
 vi.mock('../../src/adapter/api/useApiClient');
 
 describe('CreateTagModal', () => {

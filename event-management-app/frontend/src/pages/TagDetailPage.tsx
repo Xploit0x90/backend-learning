@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { getTagById } from '../adapter/api/useApiClient';
@@ -48,11 +48,7 @@ const TagDetailPage: React.FC = () => {
   const titleColor = isDark ? '#d4d2ce' : '#252422';
   const textColor = isDark ? '#d4d2ce' : '#403D39';
 
-  useEffect(() => {
-    loadTagDetails();
-  }, [id]);
-
-  const loadTagDetails = async () => {
+  const loadTagDetails = useCallback(async () => {
     try {
       setLoading(true);
       const data = await getTagById(Number(id));
@@ -74,7 +70,11 @@ const TagDetailPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, t]);
+
+  useEffect(() => {
+    loadTagDetails();
+  }, [loadTagDetails]);
 
   const isEventPast = (eventDate: string): boolean => {
     return new Date(eventDate) < new Date();

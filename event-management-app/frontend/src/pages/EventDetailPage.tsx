@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { getEventById, getAllParticipants, getAllTags, addParticipantToEvent, removeParticipantFromEvent, addTagToEvent, removeTagFromEvent, deleteEvent, getWeather } from '../adapter/api/useApiClient';
@@ -58,19 +58,7 @@ const EventDetailPage: React.FC = () => {
   const titleColor = isDark ? '#d4d2ce' : '#252422';
   const textColor = isDark ? '#d4d2ce' : '#403D39';
 
-  useEffect(() => {
-    loadEventDetails();
-    loadAllParticipantsAndTags();
-  }, [id]);
-
-  useEffect(() => {
-    if (event?.location) {
-      loadWeather();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [event?.location]);
-
-  const loadEventDetails = async () => {
+  const loadEventDetails = useCallback(async () => {
     try {
       setLoading(true);
       const data = await getEventById(Number(id));
@@ -82,9 +70,9 @@ const EventDetailPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, t]);
 
-  const loadAllParticipantsAndTags = async () => {
+  const loadAllParticipantsAndTags = useCallback(async () => {
     try {
       const [participants, tags] = await Promise.all([
         getAllParticipants(),
@@ -95,7 +83,19 @@ const EventDetailPage: React.FC = () => {
     } catch (err) {
       console.error(err);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadEventDetails();
+    loadAllParticipantsAndTags();
+  }, [id, loadEventDetails, loadAllParticipantsAndTags]);
+
+  useEffect(() => {
+    if (event?.location) {
+      loadWeather();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [event?.location]);
 
   const loadWeather = async () => {
     if (!event?.location) return;
@@ -106,11 +106,12 @@ const EventDetailPage: React.FC = () => {
       const eventDate = event.date ? new Date(event.date).toISOString().split('T')[0] : undefined;
       const weatherData = await getWeather(event.location, eventDate);
       setWeather(weatherData);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error loading weather:', err);
-      if (err.response?.status === 500 && (
-        err.response?.data?.message?.includes('Weather API key not configured') ||
-        err.response?.data?.message?.includes('Wetter-API-Schlüssel nicht konfiguriert')
+      const res = err && typeof err === 'object' && 'response' in err && (err as { response?: { status?: number; data?: { message?: string } } }).response;
+      if (res?.status === 500 && (
+        res?.data?.message?.includes('Weather API key not configured') ||
+        res?.data?.message?.includes('Wetter-API-Schlüssel nicht konfiguriert')
       )) {
         setError(t('eventDetail.weatherApiNotConfigured'));
       } else {
@@ -132,8 +133,9 @@ const EventDetailPage: React.FC = () => {
         duration: 3000,
         isClosable: true,
       });
-    } catch (err: any) {
-      if (err.response?.status === 409) {
+    } catch (err: unknown) {
+      const status = err && typeof err === 'object' && 'response' in err && (err as { response?: { status?: number } }).response?.status;
+      if (status === 409) {
         toast({
           title: t('common.error'),
           description: t('eventDetail.participantAlreadyRegistered'),
@@ -164,7 +166,7 @@ const EventDetailPage: React.FC = () => {
           duration: 3000,
           isClosable: true,
         });
-      } catch (err) {
+      } catch {
         toast({
           title: 'Fehler',
           description: 'Fehler beim Entfernen',
@@ -187,8 +189,9 @@ const EventDetailPage: React.FC = () => {
         duration: 3000,
         isClosable: true,
       });
-    } catch (err: any) {
-      if (err.response?.status === 409) {
+    } catch (err: unknown) {
+      const status = err && typeof err === 'object' && 'response' in err && (err as { response?: { status?: number } }).response?.status;
+      if (status === 409) {
         toast({
           title: 'Fehler',
           description: t('eventDetail.tagAlreadyAdded'),
@@ -218,7 +221,7 @@ const EventDetailPage: React.FC = () => {
         duration: 3000,
         isClosable: true,
       });
-    } catch (err) {
+    } catch {
       toast({
         title: 'Fehler',
         description: 'Fehler beim Entfernen',

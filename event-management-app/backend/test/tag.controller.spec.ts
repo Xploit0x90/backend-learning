@@ -184,8 +184,8 @@ describe("TagController", () => {
         name: "Existing Tag",
         color: "#FF5733",
       };
-      const error = new Error("Duplicate tag");
-      (error as any).code = "23505";
+      const error = new Error("Duplicate tag") as Error & { code?: string };
+      error.code = "23505";
 
       mockRequest.body = newTagData;
       mockTagRepository.createTag.mockRejectedValue(error);

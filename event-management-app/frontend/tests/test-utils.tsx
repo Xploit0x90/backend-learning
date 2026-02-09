@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components -- test utils: wrapper + re-exports */
 import { BrowserRouter } from "react-router-dom";
 import { render } from "@testing-library/react";
 import { ReactElement, ReactNode } from "react";
@@ -17,10 +18,6 @@ const AllTheProviders = ({ children }: { children: ReactNode }) => {
 const customRender = (ui: ReactElement) =>
   render(ui, { wrapper: AllTheProviders });
 
-// re-export everything
-// eslint-disable-next-line react-refresh/only-export-components
 export * from "@testing-library/react";
-
-// override render method
 export { customRender as render };
 

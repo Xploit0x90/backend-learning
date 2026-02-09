@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { getParticipantById } from '../adapter/api/useApiClient';
@@ -49,11 +49,7 @@ const ParticipantDetailPage: React.FC = () => {
   const titleColor = isDark ? '#d4d2ce' : '#252422';
   const textColor = isDark ? '#d4d2ce' : '#403D39';
 
-  useEffect(() => {
-    loadParticipantDetails();
-  }, [id]);
-
-  const loadParticipantDetails = async () => {
+  const loadParticipantDetails = useCallback(async () => {
     try {
       setLoading(true);
       const data = await getParticipantById(Number(id));
@@ -65,7 +61,11 @@ const ParticipantDetailPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, t]);
+
+  useEffect(() => {
+    loadParticipantDetails();
+  }, [loadParticipantDetails]);
 
   const isEventPast = (eventDate: string): boolean => {
     return new Date(eventDate) < new Date();

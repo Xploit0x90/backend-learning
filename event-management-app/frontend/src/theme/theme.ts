@@ -1,5 +1,10 @@
 import { extendTheme, type ThemeConfig } from '@chakra-ui/react';
 
+interface ThemeStyleProps {
+  colorMode?: 'light' | 'dark';
+  theme?: Record<string, unknown>;
+}
+
 // Custom theme matching the current design
 const config: ThemeConfig = {
   initialColorMode: 'light',
@@ -31,7 +36,7 @@ const theme = extendTheme({
     },
   },
   styles: {
-    global: (props: any) => ({
+    global: (props: ThemeStyleProps) => ({
       body: {
         bg: props.colorMode === 'dark' 
           ? 'linear-gradient(145deg, #1f1f1d, #2a2a28)' 
@@ -71,7 +76,7 @@ const theme = extendTheme({
       },
     },
     Card: {
-      baseStyle: (props: any) => ({
+      baseStyle: (props: ThemeStyleProps) => ({
         container: {
           bg: props.colorMode === 'dark' 
             ? 'rgba(50, 48, 46, 0.7)' 

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Tag as TagType } from '../types';
@@ -60,11 +60,7 @@ const TagsPage: React.FC = () => {
     tag.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  useEffect(() => {
-    loadTags();
-  }, []);
-
-  const loadTags = async () => {
+  const loadTags = useCallback(async () => {
     try {
       setLoading(true);
       const data = await getAllTags();
@@ -76,7 +72,11 @@ const TagsPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [t]);
+
+  useEffect(() => {
+    loadTags();
+  }, [loadTags]);
 
   const handleDeleteTag = async (id: number, name: string) => {
     if (window.confirm(t('tags.deleteConfirm', { name }))) {

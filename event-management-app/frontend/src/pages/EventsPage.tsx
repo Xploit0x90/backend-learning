@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getAllEvents, deleteEvent, getAllTags } from '../adapter/api/useApiClient';
 import { Event, Tag } from '../types';
@@ -61,12 +61,7 @@ const EventsPage: React.FC = () => {
   const titleColor = isDark ? '#d4d2ce' : '#252422';
   const textColor = isDark ? '#d4d2ce' : '#403D39';
 
-  useEffect(() => {
-    loadEvents();
-    loadTags();
-  }, []);
-
-  const loadEvents = async () => {
+  const loadEvents = useCallback(async () => {
     try {
       setLoading(true);
       const data = await getAllEvents();
@@ -78,16 +73,21 @@ const EventsPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [t]);
 
-  const loadTags = async () => {
+  const loadTags = useCallback(async () => {
     try {
       const data = await getAllTags();
       setTags(data);
     } catch (err) {
       console.error('Fehler beim Laden der Tags:', err);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadEvents();
+    loadTags();
+  }, [loadEvents, loadTags]);
 
   const handleDeleteEvent = async (id: number, title: string) => {
     if (window.confirm(t('events.deleteConfirm', { title }))) {
@@ -269,7 +269,7 @@ const EventsPage: React.FC = () => {
             </Text>
             <Select
               value={filterDate}
-              onChange={(e) => setFilterDate(e.target.value as any)}
+              onChange={(e) => setFilterDate((e.target.value || 'all') as 'all' | 'upcoming' | 'past')}
               bg={isDark ? 'rgba(255, 255, 255, 0.05)' : 'white'}
               border={`1px solid ${isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(204, 197, 185, 0.3)'}`}
               borderRadius="10px"

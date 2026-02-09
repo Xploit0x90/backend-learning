@@ -2,14 +2,14 @@ import type { Request, Response } from "express";
 import axios from "axios";
 
 function extractCityName(location: string): string {
-  let cleaned = location.trim();
+  const cleaned = location.trim();
   const countries = [
-    "germany", "deutschland", "mexico", "usa", "united states",
+    "germany", "deutschland", "mexico", "usa",
     "france", "spain", "italy", "uk", "united kingdom", "austria",
     "switzerland", "netherlands", "belgium", "poland", "czech republic",
   ];
   const cityIndicators = [
-    "stadt", "city", "town", "münchen", "munich", "berlin", "hamburg",
+    "stadt", "city", "town", "münchen", "berlin", "hamburg",
     "frankfurt", "köln", "cologne", "stuttgart", "düsseldorf", "dresden",
     "mexico city", "mexico", "london", "paris", "madrid", "rome",
   ];

@@ -86,8 +86,9 @@ const EditParticipantModal: React.FC<EditParticipantModalProps> = ({ isOpen, onC
 
       onSuccess();
       onClose();
-    } catch (err: any) {
-      if (err.response?.status === 409) {
+    } catch (err: unknown) {
+      const status = err && typeof err === 'object' && 'response' in err && (err as { response?: { status?: number } }).response?.status;
+      if (status === 409) {
         setError('Ein Teilnehmer mit dieser E-Mail existiert bereits');
       } else {
         setError('Fehler beim Aktualisieren des Teilnehmers');

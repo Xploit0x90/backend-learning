@@ -111,7 +111,7 @@ export const removeTagFromEvent = async (tagId: number, eventId: number): Promis
 // ==================== WEATHER ====================
 
 export const getWeather = async (location: string, date?: string): Promise<Weather> => {
-  const params: any = { location };
+  const params: Record<string, string> = { location };
   if (date) params.date = date;
   
   const response = await api.get<ApiResponse<Weather>>('/api/weather', { params });

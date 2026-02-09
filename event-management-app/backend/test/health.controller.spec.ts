@@ -1,9 +1,8 @@
 import express, { Application } from "express";
 import request from "supertest";
-import { Pool } from "pg";
 
 import { HealthController } from "../src/controller/health.controller";
-import { pool } from "../src/database";
+import { pool } from "../src/db";
 
 /**
  * This test is neither a unit test nor a full integration test.
@@ -48,7 +47,7 @@ describe("HealthController", () => {
         expect(response.body.status).toBe("OK");
         expect(response.body.message).toBe("Database connected!");
         expect(response.body.timestamp).toBeDefined();
-      } catch (error) {
+      } catch (_error) {
         // If database is not available, test will fail but that's expected
         // In a proper test setup, we'd mock the pool
         console.warn("Database health check test skipped - database may not be available");
@@ -59,7 +58,7 @@ describe("HealthController", () => {
       // Mock pool.query to throw an error
       const originalQuery = pool.query.bind(pool);
       const mockQuery = jest.fn().mockRejectedValue(new Error("Connection failed"));
-      pool.query = mockQuery as any;
+      (pool as { query: jest.Mock }).query = mockQuery;
 
       const response = await request(app).get("/health/db").expect(500);
 

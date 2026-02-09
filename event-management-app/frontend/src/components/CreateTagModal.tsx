@@ -75,10 +75,11 @@ const CreateTagModal: React.FC<CreateTagModalProps> = ({ isOpen, onClose, onSucc
 
       onSuccess();
       onClose();
-    } catch (err: any) {
-      if (err.response?.status === 409) {
+    } catch (err: unknown) {
+      const status = err && typeof err === 'object' && 'response' in err && (err as { response?: { status?: number } }).response?.status;
+      if (status === 409) {
         setError(t('createTag.nameExists'));
-      } else if (err.response?.status === 400) {
+      } else if (status === 400) {
         setError(t('createTag.colorHex'));
       } else {
         setError(t('createTag.createError'));

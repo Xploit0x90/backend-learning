@@ -79,10 +79,11 @@ const EditTagModal: React.FC<EditTagModalProps> = ({ isOpen, onClose, onSuccess,
 
       onSuccess();
       onClose();
-    } catch (err: any) {
-      if (err.response?.status === 409) {
+    } catch (err: unknown) {
+      const status = err && typeof err === 'object' && 'response' in err && (err as { response?: { status?: number } }).response?.status;
+      if (status === 409) {
         setError('Ein Tag mit diesem Namen existiert bereits');
-      } else if (err.response?.status === 400) {
+      } else if (status === 400) {
         setError('Farbe muss im HEX-Format sein (z.B. #FF5733)');
       } else {
         setError('Fehler beim Aktualisieren des Tags');

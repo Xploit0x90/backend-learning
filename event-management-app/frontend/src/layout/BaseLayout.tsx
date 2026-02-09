@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Calendar, Home, Users, Tag, Sun, Moon, Languages } from 'lucide-react';
+import { Calendar, Home, Users, Tag, Sun, Moon } from 'lucide-react';
 import {
   Box,
   Flex,
   Button,
   Heading,
+  Text,
   chakra,
 } from '@chakra-ui/react';
 import '../App.css';
@@ -110,7 +111,7 @@ export const BaseLayout: React.FC<BaseLayoutProps> = ({ children }) => {
           <Button
             className="icon-btn language-toggle"
             onClick={toggleLanguage}
-            width={{ base: '32px', sm: '36px', md: '44px', lg: '48px' }}
+            minWidth={{ base: '36px', sm: '40px', md: '48px', lg: '52px' }}
             height={{ base: '32px', sm: '36px', md: '44px', lg: '48px' }}
             bg="rgba(79, 70, 229, 0.1)"
             borderRadius={{ base: '10px', md: '12px' }}
@@ -118,8 +119,7 @@ export const BaseLayout: React.FC<BaseLayoutProps> = ({ children }) => {
             alignItems="center"
             justifyContent="center"
             color="#403D39"
-            padding="0"
-            minWidth="auto"
+            padding="0 6px"
             title={i18n.language === 'de' ? t('nav.switchToEnglish') : t('nav.switchToGerman')}
             _hover={{
               bg: '#4F46E5',
@@ -132,7 +132,9 @@ export const BaseLayout: React.FC<BaseLayoutProps> = ({ children }) => {
               color: '#f6f4f0',
             }}
           >
-            <Languages size={20} />
+            <Text as="span" fontSize={{ base: '12px', sm: '13px', md: '14px' }} fontWeight={700} letterSpacing="0.02em">
+              {i18n.language === 'de' ? 'DE' : 'EN'}
+            </Text>
           </Button>
           {/* Dark Mode Toggle */}
           <Button
