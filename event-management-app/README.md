@@ -1,47 +1,67 @@
 # Event Management System
 
-Full-stack app to manage **events**, **participants**, and **tags**. Create events, assign participants, categorize with tags, and optionally show weather for event locations.
+A full-stack web application for managing events, participants, and tags. Create and edit events, assign participants, categorize with tags, and view optional weather for event locations. The app is available in **English** and **German** and includes a responsive UI with dark/light mode.
 
 ---
 
-## What it does
+## Live demo
 
-- **Events** — Create, edit, delete; title, description, location, date, image, max participants.
-- **Participants** — Manage people and assign them to events.
-- **Tags** — Label events with colored tags; filter by tag.
-- **Weather** — Optional: show weather for event location (needs [WeatherAPI](https://www.weatherapi.com/) key).
+**[Open the app →](https://zoological-fascination-production.up.railway.app/home)**
 
-Single-user app (no login). Works with Docker or run backend + frontend locally.
+*Deployed on [Railway](https://railway.app). Frontend and backend run together; the database is hosted in the cloud.*
+
+---
+
+## For recruiters & HR
+
+| | |
+|--|--|
+| **What it is** | A working full-stack CRUD application: events, participants, and tags with relationships (many-to-many). |
+| **What it shows** | Backend API design, React frontend, TypeScript end-to-end, RESTful routes, form validation, and deployment. |
+| **Tech used** | **Frontend:** React, TypeScript, Vite, Chakra UI, React Router, i18n (EN/DE). **Backend:** Node.js, Express, TypeScript, Drizzle ORM, Zod. **Database:** PostgreSQL. |
+| **Deployment** | Single deployment on Railway (app + API + DB). No login required — you can use the live link above directly. |
+
+---
+
+## Features
+
+- **Events** — Create, edit, delete; title, description, location, date, image URL, max participants.
+- **Participants** — Add participants and assign them to events; view participant details and their events.
+- **Tags** — Colored tags for events; filter events by tag; tag management (create, edit, delete).
+- **Weather** — Optional weather for event location (requires [WeatherAPI](https://www.weatherapi.com/) key in backend).
+- **UI** — Responsive layout, dark/light theme toggle, English/German language switch.
+
+Single-user app (no authentication). Runs locally with Docker or with a local PostgreSQL instance.
 
 ---
 
 ## Tech stack
 
-| Layer     | Tech |
-|----------|------|
-| Frontend | React, TypeScript, Vite, Chakra UI, React Router, Axios |
-| Backend  | Node.js, Express, TypeScript, Drizzle ORM, Zod |
-| Database | PostgreSQL |
+| Layer | Technologies |
+|-------|----------------|
+| **Frontend** | React 18, TypeScript, Vite, Chakra UI, React Router, Axios, i18next (EN/DE) |
+| **Backend** | Node.js, Express, TypeScript, Drizzle ORM, Zod (validation) |
+| **Database** | PostgreSQL |
 
 ---
 
-## How to run
+## How to run locally
 
 ### Option 1: Docker
 
 ```bash
-cp .env.example .env   # optional: set WEATHER_API_KEY for weather feature
+cp .env.example .env   # optional: add WEATHER_API_KEY for weather
 docker-compose up -d
 ```
 
-- Frontend: **http://localhost:3000**
-- Backend API: **http://localhost:5000/api**
+- **App:** http://localhost:3000  
+- **API:** http://localhost:5000/api  
 
-DB is seeded with sample data on first run.
+Sample data is seeded on first run.
 
-### Option 2: Local (no Docker)
+### Option 2: Local (backend + frontend + your own DB)
 
-**1. Database** — PostgreSQL running (local or e.g. [Neon](https://neon.tech)).
+**1. Database** — PostgreSQL (local or e.g. [Neon](https://neon.tech) free tier).
 
 **2. Backend**
 
@@ -54,13 +74,14 @@ Create `backend/.env`:
 
 ```env
 DATABASE_URL=postgresql://user:password@host:port/database
-PORT=5000
-WEATHER_API_KEY=your_key_here   # optional
+PORT=3001
+CORS_ORIGIN=http://localhost:3000
+WEATHER_API_KEY=your_key   # optional
 ```
 
 ```bash
-npm run db:push    # create tables
-npm run dev        # http://localhost:5000
+npm run db:push
+npm run dev
 ```
 
 **3. Frontend**
@@ -68,10 +89,19 @@ npm run dev        # http://localhost:5000
 ```bash
 cd frontend
 npm install
-npm run dev        # e.g. http://localhost:5173
 ```
 
-Set `VITE_API_URL=http://localhost:5000/api` in `frontend/.env` if the API is on another port.
+Create `frontend/.env`:
+
+```env
+VITE_API_URL=http://localhost:3001
+```
+
+```bash
+npm run dev
+```
+
+Open **http://localhost:3000**. The dev server proxies `/api` to the backend so CORS is not an issue.
 
 ---
 
@@ -79,88 +109,66 @@ Set `VITE_API_URL=http://localhost:5000/api` in `frontend/.env` if the API is on
 
 ```
 event-management-app/
-├── backend/           # Express API
+├── backend/
 │   └── src/
 │       ├── controller/   # event, participant, tag, health, weather
-│       ├── routes/       # one file per resource
-│       ├── services/     # eventService, participantService, tagService
-│       ├── db/           # schema.ts
+│       ├── routes/       # REST routes per resource
+│       ├── services/     # business logic
+│       ├── db/           # Drizzle schema
 │       ├── validators/   # Zod schemas
-│       └── server.ts     # entry
-├── frontend/          # React + Vite + Chakra UI
+│       └── server.ts
+├── frontend/
 │   └── src/
-│       ├── pages/       # Events, Participants, Tags, etc.
-│       ├── components/  # modals, layout
-│       └── adapter/api/ # API client
+│       ├── pages/        # Events, Participants, Tags, detail pages
+│       ├── components/   # modals, layout
+│       ├── adapter/api/  # API client (axios)
+│       └── locales/      # en.json, de.json
 └── docker-compose.yml
 ```
 
 ---
 
-## API (summary)
+## API overview
 
-- `GET/POST/PUT/DELETE` **/api/events**, **/api/participants**, **/api/tags**
-- `POST /api/participants/add-to-event` — add participant to event
-- `POST /api/tags/add-to-event` — add tag to event
-- `GET /api/weather?location=Berlin` — weather (optional)
-- `GET /api/health`, `GET /api/db-test` — health checks
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET / POST | `/api/events` | List, create |
+| GET / PUT / DELETE | `/api/events/:id` | Get, update, delete event |
+| GET / POST | `/api/participants` | List, create |
+| GET / PUT / DELETE | `/api/participants/:id` | Get, update, delete participant |
+| POST | `/api/participants/add-to-event` | Assign participant to event |
+| DELETE | `/api/participants/:id/events/:eventId` | Remove from event |
+| GET / POST | `/api/tags` | List, create |
+| GET / PUT / DELETE | `/api/tags/:id` | Get, update, delete tag |
+| POST | `/api/tags/add-to-event` | Assign tag to event |
+| GET | `/api/weather?location=...` | Weather (optional) |
+| GET | `/api/health` | Health check |
 
-Postman collection: `backend/docs/Event-Management-API.postman_collection.json`
+Postman collection: `backend/docs/Event-Management-API.postman_collection.json` (if present).
 
 ---
 
-## Deploy on Vercel (frontend only)
+## Deployment (Railway)
 
-**Important:** Vercel only serves the **frontend** (HTML/JS/CSS). It does **not** run your Express backend or PostgreSQL. So “database is not running on deployment” is expected if you only deployed to Vercel — the database and backend must run somewhere else.
+This project is deployed on **Railway** (full stack: app + API + PostgreSQL).
 
-### Full production setup (no “database not running”)
-
-You need three things: **database**, **backend**, **frontend**.
-
-**1. Database (PostgreSQL in the cloud)**  
-Create a free Postgres instance and get a connection string:
-
-- **[Neon](https://neon.tech)** (recommended, free tier): Sign up → New project → copy the connection string (e.g. `postgresql://user:pass@ep-xxx.region.aws.neon.tech/neondb?sslmode=require`).
-
-**2. Backend (Node/Express)**  
-Deploy the `backend` folder to a Node host and point it at that database:
-
-- **[Railway](https://railway.app)**: New project → Deploy from GitHub (choose repo, set **Root Directory** to `event-management-app/backend`). Add variables:
-  - `DATABASE_URL` = your Neon (or other) connection string
-  - `PORT` = often set automatically
-  - `CORS_ORIGIN` = `https://your-app.vercel.app`
-  - `WEATHER_API_KEY` = optional
-- **[Render](https://render.com)**: New Web Service → connect repo, **Root Directory** `event-management-app/backend`, build `npm install && npm run build`, start `npm start`. Add `DATABASE_URL` (and others) in Environment.
-
-After first deploy, run the schema once (e.g. Railway “Run command” or locally with `DATABASE_URL` set):
-
-```bash
-cd backend && npm run db:push
-```
-
-Then (optional) seed: `npm run db:seed`.
-
-**3. Frontend (Vercel)**  
-- Deploy this repo to Vercel with **Root Directory** = `event-management-app`.
-- In Vercel **Settings → Environment Variables** add:
-  - `VITE_API_URL` = your backend URL, e.g. `https://your-backend.railway.app/api`
-- Redeploy so the frontend is built with that URL.
-
-**4. CORS**  
-On the backend host, set `CORS_ORIGIN=https://your-project.vercel.app` so the browser allows requests from your Vercel domain.
-
-**If you see a Vercel error (e.g. a code like `fra1::xwl2v-...`):** That’s a deployment ID, not the real error.
-- In the Vercel dashboard open the failed **Deployment** → **Building** tab and check the **build logs** for the actual message (e.g. “No such file or directory”, “npm run build exited with 1”).
-- **Repo is `backend-learning`?** In the project **Settings → General** set **Root Directory** to `event-management-app` so the build can find the `frontend` folder. Leave “Include source files outside of the Root Directory” unchecked.
-- If the build fails on `tsc` or `vite build`, fix the reported TypeScript or build error locally with `cd frontend && npm run build`.
+- **Backend:** Deploy `backend` with `DATABASE_URL`, `PORT`, `CORS_ORIGIN` (your frontend URL), and optional `WEATHER_API_KEY`. Run `npm run db:push` once after first deploy.
+- **Frontend:** Build uses `VITE_API_URL` pointing to the backend URL (no `/api` suffix). Static build can be served by the same Railway service or a separate one.
+- **CORS:** Set `CORS_ORIGIN` to the exact frontend origin (e.g. `https://zoological-fascination-production.up.railway.app`) so the browser allows API requests.
 
 ---
 
 ## Scripts
 
-**Backend:** `npm run dev` | `npm run build` | `npm run db:push` | `npm run db:seed` | `npm test`  
-**Frontend:** `npm run dev` | `npm run build` | `npm test`
+| Where | Command | Purpose |
+|-------|---------|---------|
+| Backend | `npm run dev` | Start dev server |
+| Backend | `npm run build` | Production build |
+| Backend | `npm run db:push` | Apply schema to DB |
+| Backend | `npm run db:seed` | Seed sample data |
+| Frontend | `npm run dev` | Start Vite dev server |
+| Frontend | `npm run build` | Production build |
 
 ---
 
-FWE course project (Fortgeschrittene Webentwicklung) — Mohammad Sarhan
+
