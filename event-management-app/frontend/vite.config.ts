@@ -13,6 +13,9 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [react(), tsconfigPaths()],
+    resolve: {
+      dedupe: ['react', 'react-dom'],
+    },
     build: {
       target: 'es2020',
       sourcemap: false,
