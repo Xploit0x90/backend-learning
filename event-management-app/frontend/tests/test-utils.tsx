@@ -1,4 +1,5 @@
 /* eslint-disable react-refresh/only-export-components -- test utils: wrapper + re-exports */
+import "../src/i18n";
 import { BrowserRouter } from "react-router-dom";
 import { render } from "@testing-library/react";
 import { ReactElement, ReactNode } from "react";
