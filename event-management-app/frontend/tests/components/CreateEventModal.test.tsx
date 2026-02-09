@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '../test-utils';
+import { render, screen, fireEvent } from '../test-utils';
 import CreateEventModal from '../../src/components/CreateEventModal';
 
 vi.mock('../../src/adapter/api/useApiClient');
