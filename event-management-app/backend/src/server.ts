@@ -13,7 +13,7 @@ import { event, participant, tag } from "./db/schema.js";
 
 dotenv.config();
 
-const PORT = Number(process.env.PORT ?? 5000);
+const PORT = Number(process.env.PORT ?? 8080);
 
 async function checkAndSeed() {
   try {
@@ -45,11 +45,11 @@ server.use("/api", healthRouter);
 server.use("/api/weather", weatherRouter);
 
 checkAndSeed().then(() => {
-  server.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
-  console.log(`Health: http://localhost:${PORT}/api/health`);
-  console.log(`Events: http://localhost:${PORT}/api/events`);
-  console.log(`Participants: http://localhost:${PORT}/api/participants`);
-  console.log(`Tags: http://localhost:${PORT}/api/tags`);
+  server.listen(PORT, "0.0.0.0", () => {
+    console.log(`Server is running on http://0.0.0.0:${PORT}`);
+    console.log(`Health: http://0.0.0.0:${PORT}/api/health`);
+    console.log(`Events: http://0.0.0.0:${PORT}/api/events`);
+    console.log(`Participants: http://0.0.0.0:${PORT}/api/participants`);
+    console.log(`Tags: http://0.0.0.0:${PORT}/api/tags`);
   });
 });
