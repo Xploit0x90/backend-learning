@@ -171,4 +171,4 @@ This project is deployed on **Railway** (full stack: app + API + PostgreSQL).
 
 ---
 
-*FWE course project (Fortgeschrittene Webentwicklung) — Mohammad Sarhan*
+
