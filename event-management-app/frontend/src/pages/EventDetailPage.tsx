@@ -391,6 +391,8 @@ const EventDetailPage: React.FC = () => {
                 color="#3B82F6"
                 _hover={{ bg: 'rgba(59, 130, 246, 0.2)' }}
                 borderRadius="10px"
+                minHeight="44px"
+                padding="10px 16px"
                 onClick={() => setEditingEvent(event)}
                 size={{ base: 'sm', md: 'md' }}
                 flex={{ base: '1', sm: '0 1 auto' }}
@@ -404,6 +406,8 @@ const EventDetailPage: React.FC = () => {
                 color="#ef4444"
                 _hover={{ bg: 'rgba(239, 68, 68, 0.2)' }}
                 borderRadius="10px"
+                minHeight="44px"
+                padding="10px 16px"
                 onClick={handleDeleteEvent}
                 size={{ base: 'sm', md: 'md' }}
                 flex={{ base: '1', sm: '0 1 auto' }}
@@ -621,8 +625,8 @@ const EventDetailPage: React.FC = () => {
         borderRadius="20px"
         padding="30px"
       >
-        <Flex justifyContent="space-between" alignItems="center" mb="20px">
-          <Heading fontSize="24px" fontWeight={700} color={titleColor}>
+        <Flex justifyContent="space-between" alignItems="center" mb="20px" gap="12px" flexWrap="wrap">
+          <Heading fontSize="24px" fontWeight={700} color={titleColor} minWidth="0">
             Teilnehmer ({event.participants?.length || 0})
           </Heading>
           <Button
@@ -632,6 +636,9 @@ const EventDetailPage: React.FC = () => {
             color="#EB5E28"
             _hover={{ bg: 'rgba(235, 94, 40, 0.2)' }}
             borderRadius="10px"
+            minHeight="44px"
+            padding="10px 16px"
+            flexShrink={0}
             onClick={() => setShowAddParticipant(!showAddParticipant)}
           >
             {showAddParticipant ? 'Abbrechen' : 'Teilnehmer hinzufügen'}
@@ -680,26 +687,28 @@ const EventDetailPage: React.FC = () => {
               <Flex
                 key={participant.id}
                 alignItems="center"
-                gap="16px"
+                gap="12px"
                 padding="16px"
                 bg={isDark ? 'rgba(50, 48, 46, 0.5)' : 'rgba(204, 197, 185, 0.1)'}
                 borderRadius="12px"
+                minWidth="0"
               >
                 <Avatar
                   size="md"
                   name={`${participant.first_name} ${participant.last_name}`}
                   bg="#4F46E5"
                   color="white"
+                  flexShrink={0}
                 />
-                <VStack align="flex-start" spacing="4px" flex="1" minWidth="0">
-                  <Text fontSize="16px" fontWeight={600} color={titleColor}>
+                <VStack align="flex-start" spacing="4px" flex="1" minWidth="0" overflow="hidden">
+                  <Text fontSize="16px" fontWeight={600} color={titleColor} noOfLines={1} overflow="hidden" textOverflow="ellipsis" wordBreak="break-word" width="100%">
                     {participant.first_name} {participant.last_name}
                   </Text>
-                  <Text fontSize="14px" color={textColor}>
+                  <Text fontSize="14px" color={textColor} noOfLines={1} overflow="hidden" textOverflow="ellipsis" wordBreak="break-all" width="100%">
                     {participant.email}
                   </Text>
                   {participant.registered_at && (
-                    <Text fontSize="12px" color={textColor} opacity={0.7}>
+                    <Text fontSize="12px" color={textColor} opacity={0.7} width="100%">
                       Angemeldet: {new Date(participant.registered_at).toLocaleDateString('de-DE')}
                     </Text>
                   )}
@@ -707,6 +716,9 @@ const EventDetailPage: React.FC = () => {
                 <Button
                   size="sm"
                   variant="ghost"
+                  minWidth="44px"
+                  minHeight="44px"
+                  flexShrink={0}
                   onClick={() => handleRemoveParticipant(participant.id)}
                   title="Entfernen"
                   color="#ef4444"

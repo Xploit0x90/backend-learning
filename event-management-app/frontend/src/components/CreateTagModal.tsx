@@ -91,13 +91,15 @@ const CreateTagModal: React.FC<CreateTagModalProps> = ({ isOpen, onClose, onSucc
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="lg" isCentered>
+    <Modal isOpen={isOpen} onClose={onClose} size={{ base: 'full', md: 'lg' }} isCentered scrollBehavior="inside">
       <ModalOverlay bg="blackAlpha.600" backdropFilter="blur(10px)" />
       <ModalContent
         bg={cardBg}
         border={`1px solid ${cardBorder}`}
         backdropFilter="blur(20px)"
-        borderRadius="20px"
+        borderRadius={{ base: '0', md: '20px' }}
+        maxH={{ base: '100vh', md: '90vh' }}
+        margin={0}
       >
         <ModalHeader fontSize="24px" fontWeight={700}>
           {t('createTag.title')}
